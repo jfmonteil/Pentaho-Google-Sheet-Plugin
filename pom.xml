@@ -1,0 +1,107 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.pentaho</groupId>
+  <artifactId>PentahoGoogleSheetsPlugin</artifactId>
+  <version>1</version>
+  <packaging>jar</packaging>
+  <name>"Pentaho Google Sheets"</name>
+  <description>"Google Sheets Pentaho Plugin API V4"</description>
+
+ 
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <pentaho.kettle.version>8.3.0.0-SNAPSHOT</pentaho.kettle.version>
+	<junit.version>4.4</junit.version>
+    <guava.version>17.0</guava.version>
+  </properties>
+  
+  <repositories>
+    <repository>
+      <id>pentaho</id>   
+      <url>http://ivy-nexus.pentaho.org/content/groups/omni</url>
+    </repository>
+  </repositories>
+  
+ 
+
+  <dependencies>
+    <dependency>
+      <groupId>pentaho-kettle</groupId>
+      <artifactId>kettle-core</artifactId>
+      <version>${pentaho.kettle.version}</version>
+	  <scope>provided</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>com.google.guava</groupId>
+          <artifactId>guava</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>pentaho-kettle</groupId>
+      <artifactId>kettle-engine</artifactId>
+      <version>${pentaho.kettle.version}</version>
+	  <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>pentaho-kettle</groupId>
+      <artifactId>kettle-ui-swt</artifactId>
+      <version>${pentaho.kettle.version}</version>
+	  <scope>provided</scope>
+    </dependency>
+	
+   
+	<dependency>
+		<groupId>com.google.api-client</groupId>
+		<artifactId>google-api-client</artifactId>
+		<version>1.23.0</version>
+	</dependency>
+	<dependency>
+		<groupId>com.google.oauth-client</groupId>
+		<artifactId>google-oauth-client-jetty</artifactId>
+		<version>1.23.0</version>
+	</dependency>
+	<dependency>
+		<groupId>com.google.apis</groupId>
+		<artifactId>google-api-services-sheets</artifactId>
+		<version>v4-rev493-1.23.0</version>
+	</dependency>
+    <dependency>
+      <groupId>com.google.apis</groupId>
+      <artifactId>google-api-services-drive</artifactId>
+      <version>v3-rev20191108-1.30.3</version>
+    </dependency>
+  </dependencies>
+  <build>
+    <plugins>
+      <plugin>
+		<groupId>org.apache.maven.plugins</groupId>
+		<artifactId>maven-compiler-plugin</artifactId>
+		<version>3.1</version>
+		<configuration>
+			<source>1.7</source>
+			<target>1.7</target>
+		</configuration>
+	  </plugin>
+	  <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>3.0.0</version>
+        <configuration>
+          <descriptors>
+            <descriptor>src/main/assembly/assembly.xml</descriptor>
+          </descriptors>
+        </configuration>
+        <executions>
+          <execution>
+            <id>make-assembly</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

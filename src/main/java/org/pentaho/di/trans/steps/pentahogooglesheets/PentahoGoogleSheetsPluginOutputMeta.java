@@ -1,0 +1,345 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+package org.pentaho.di.trans.steps.pentahogooglesheets;
+
+import org.pentaho.di.core.annotations.Step;
+import org.pentaho.di.core.CheckResult;
+import org.pentaho.di.core.CheckResultInterface;
+import org.pentaho.di.core.database.DatabaseMeta;
+import org.pentaho.di.core.exception.KettleException;
+import org.pentaho.di.core.exception.KettleStepException;
+import org.pentaho.di.core.exception.KettleValueException;
+import org.pentaho.di.core.exception.KettleXMLException;
+import org.pentaho.di.core.row.RowMetaInterface;
+import org.pentaho.di.core.row.ValueMetaInterface;
+import org.pentaho.di.core.row.ValueMeta;
+import org.pentaho.di.core.row.value.ValueMetaFactory;
+import org.pentaho.di.core.row.value.ValueMetaInteger;
+import org.pentaho.di.core.row.value.ValueMetaString;
+import org.pentaho.di.core.variables.VariableSpace;
+import org.pentaho.di.core.Const;
+import org.pentaho.di.core.xml.XMLHandler;
+import org.pentaho.di.i18n.BaseMessages;
+import org.pentaho.di.repository.ObjectId;
+import org.pentaho.di.repository.Repository;
+import org.pentaho.di.trans.Trans;
+import org.pentaho.di.trans.TransMeta;
+import org.pentaho.di.trans.step.BaseStepMeta;
+import org.pentaho.di.trans.step.StepInterface;
+import org.pentaho.di.trans.step.StepMeta;
+import org.pentaho.di.trans.step.StepMetaInterface;
+import org.pentaho.di.trans.step.StepDataInterface;
+import org.pentaho.metastore.api.IMetaStore;
+import org.w3c.dom.Node;
+import org.pentaho.di.trans.steps.csvinput.CsvInputMeta;
+import org.pentaho.di.trans.steps.textfileinput.TextFileInputField;
+import org.pentaho.di.trans.steps.file.BaseFileField;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.security.KeyStore;
+
+import org.pentaho.di.core.injection.Injection;
+import org.pentaho.di.core.injection.InjectionDeep;
+import org.pentaho.di.core.injection.InjectionSupported;
+
+
+/**
+ * Skeleton for PDI Step plugin.
+ */
+
+@Step(
+	id = "PentahoGoogleSheetsPluginOutputMeta", 
+	image = "PentahoGoogleSheetsPluginOutput.svg", 
+	name = "Pentaho Google Sheets Output", 
+	i18nPackageName = "org.pentaho.di.trans.steps.PentahoGoogleSheetsPluginOutput",
+	description = "Google Sheet Pentaho Output Plugin API V4", 	
+	categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.Output" 
+	) 
+	
+@InjectionSupported( localizationPrefix = "pentahogoogleoutput.Injection.", groups = { "SHEET", "OUTPUT_FIELDS" } )
+public class PentahoGoogleSheetsPluginOutputMeta extends BaseStepMeta implements StepMetaInterface {
+	
+	private static Class<?> PKG = PentahoGoogleSheetsPluginOutputMeta.class; // for i18n purposes, needed by Translator2!!   $NON-NLS-1$
+    public  PentahoGoogleSheetsPluginOutputMeta() {
+      super(); // allocate BaseStepMeta
+	  //allocate(0);
+    }
+
+
+	@Injection( name = "spreadsheetKey", group = "SHEET" )
+    private String spreadsheetKey;
+    
+	@Injection( name = "worksheetId", group = "SHEET" )
+	private String worksheetId;
+	
+	//private TextFileInputField[] inputFields;
+	
+    @Override
+    public void setDefault() {   
+        this.spreadsheetKey = "";
+        this.worksheetId = "";  
+    }
+		
+    public String getDialogClassName() {
+        return "org.pentaho.di.ui.trans.steps.pentahogooglesheets.PentahoGoogleSheetsPluginOutputDialog";
+    }
+	
+	/*public TextFileInputField[] getInputFields() {
+		return inputFields;
+	}*/
+
+	  /**
+	   * @param inputFields
+	   *          The input fields to set.
+	   */
+
+    public String getSpreadsheetKey() {
+        return this.spreadsheetKey == null ? "" : this.spreadsheetKey;
+    }
+
+    public void setSpreadsheetKey(String key) {
+        this.spreadsheetKey = key;
+    }
+
+    public String getWorksheetId() {
+        return this.worksheetId == null ? "" : this.worksheetId;
+    }
+
+    public void setWorksheetId(String id) {
+        this.worksheetId = id;
+    }
+     
+	
+  
+	
+ /* public void allocate(int nrfields) {
+    inputFields = new TextFileInputField[nrfields];
+  }*/
+	
+
+    @Override
+    public Object clone() {
+        PentahoGoogleSheetsPluginOutputMeta retval = (PentahoGoogleSheetsPluginOutputMeta) super.clone();
+     
+       // int nrKeys = inputFields.length;
+       // retval.allocate(nrKeys);
+		retval.setSpreadsheetKey(this.spreadsheetKey);
+        retval.setWorksheetId(this.worksheetId);
+		/*for ( int i = 0; i < nrKeys; i++ ) {
+			retval.inputFields[i] = (TextFileInputField) inputFields[i].clone();
+        }*/
+        return retval;
+    }
+
+    @Override
+    public String getXML() throws KettleException {
+        StringBuilder xml = new StringBuilder();
+        try {         
+            xml.append(XMLHandler.addTagValue("worksheetId", this.worksheetId));
+			xml.append(XMLHandler.addTagValue("spreadsheetKey", this.spreadsheetKey));
+     						
+           /* xml.append(XMLHandler.openTag("fields"));
+            for ( int i = 0; i < inputFields.length; i++ ) {
+			  TextFileInputField field = inputFields[i];
+			  xml.append( "      <field>" ).append( Const.CR );
+			  xml.append( "        " ).append( XMLHandler.addTagValue( "name", field.getName() ) );
+			  xml.append( "        " ).append( XMLHandler.addTagValue( "type", field.getTypeDesc() ) );
+			  xml.append( "        " ).append( XMLHandler.addTagValue( "format", field.getFormat() ) );
+			  xml.append( "        " ).append( XMLHandler.addTagValue( "currency", field.getCurrencySymbol() ) );
+			  xml.append( "        " ).append( XMLHandler.addTagValue( "decimal", field.getDecimalSymbol() ) );
+			  xml.append( "        " ).append( XMLHandler.addTagValue( "group", field.getGroupSymbol() ) );
+			  xml.append( "        " ).append( XMLHandler.addTagValue( "position", field.getPosition() ) );
+			  xml.append( "        " ).append( XMLHandler.addTagValue( "length", field.getLength() ) );
+			  xml.append( "        " ).append( XMLHandler.addTagValue( "precision", field.getPrecision() ) );
+			  xml.append( "        " ).append( XMLHandler.addTagValue( "trim_type", field.getTrimTypeCode() ) );
+			  xml.append( "      </field>" ).append( Const.CR );
+			}
+			xml.append( "    </fields>" ).append( Const.CR );*/
+
+        } catch (Exception e) {
+            throw new KettleValueException("Unable to write step to XML", e);
+        }
+        return xml.toString();
+    }
+
+    @Override
+    public void loadXML(Node stepnode, List<DatabaseMeta> databases, IMetaStore metaStore) throws KettleXMLException {
+        try {
+           
+            this.worksheetId = XMLHandler.getTagValue(stepnode, "worksheetId");
+            this.spreadsheetKey = XMLHandler.getTagValue(stepnode, "spreadsheetKey");
+
+            Node fields = XMLHandler.getSubNode(stepnode, "fields");
+           /* int nrfields = XMLHandler.countNodes(fields, "field");
+
+            allocate(nrfields);
+
+            for ( int i = 0; i < nrfields; i++ ) {
+				Node fnode = XMLHandler.getSubNodeByNr( fields, "field", i );
+				TextFileInputField field = new TextFileInputField();
+
+				field.setName( XMLHandler.getTagValue( fnode, "name" ) );
+				field.setType( ValueMetaFactory.getIdForValueMeta( XMLHandler.getTagValue( fnode, "type" ) ) );
+				field.setFormat( XMLHandler.getTagValue( fnode, "format" ) );
+				field.setCurrencySymbol( XMLHandler.getTagValue( fnode, "currency" ) );
+				field.setDecimalSymbol( XMLHandler.getTagValue( fnode, "decimal" ) );
+				field.setGroupSymbol( XMLHandler.getTagValue( fnode, "group" ) );
+				//field.setNullString( XMLHandler.getTagValue( fnode, "nullif" ) );
+				//field.setIfNullValue( XMLHandler.getTagValue( fnode, "ifnull" ) );
+				field.setPosition( Const.toInt( XMLHandler.getTagValue( fnode, "position" ), -1 ) );
+				field.setLength( Const.toInt( XMLHandler.getTagValue( fnode, "length" ), -1 ) );
+				field.setPrecision( Const.toInt( XMLHandler.getTagValue( fnode, "precision" ), -1 ) );
+				field.setTrimType( ValueMetaString.getTrimTypeByCode( XMLHandler.getTagValue( fnode, "trim_type" ) ) );
+				//field.setRepeated( YES.equalsIgnoreCase( XMLHandler.getTagValue( fnode, "repeat" ) ) );
+
+                inputFields[i] = field;
+             }*/
+
+        } catch (Exception e) {
+            throw new KettleXMLException("Unable to load step from XML", e);
+        }
+    }
+
+    @Override
+    public void readRep(Repository rep, IMetaStore metaStore, ObjectId id_step, List<DatabaseMeta> databases) throws KettleException {
+        try {
+
+            this.worksheetId = rep.getStepAttributeString(id_step, "worksheetId");
+            this.spreadsheetKey = rep.getStepAttributeString(id_step, "spreadsheetKey");
+
+            /*int nrfields = rep.countNrStepAttributes(id_step, "field_name");
+
+            allocate(nrfields);
+
+            for ( int i = 0; i < nrfields; i++ ) {
+				TextFileInputField field = new TextFileInputField();
+
+				field.setName( rep.getStepAttributeString( id_step, i, "field_name" ) );
+				field.setType( ValueMetaFactory.getIdForValueMeta( rep.getStepAttributeString( id_step, i, "field_type" ) ) );
+				field.setFormat( rep.getStepAttributeString( id_step, i, "field_format" ) );
+				field.setCurrencySymbol( rep.getStepAttributeString( id_step, i, "field_currency" ) );
+				field.setDecimalSymbol( rep.getStepAttributeString( id_step, i, "field_decimal" ) );
+				field.setGroupSymbol( rep.getStepAttributeString( id_step, i, "field_group" ) );
+				//field.setNullString( rep.getStepAttributeString( id_step, i, "field_nullif" ) );
+				//field.setIfNullValue( rep.getStepAttributeString( id_step, i, "field_ifnull" ) );
+				field.setPosition( (int) rep.getStepAttributeInteger( id_step, i, "field_position" ) );
+				field.setLength( (int) rep.getStepAttributeInteger( id_step, i, "field_length" ) );
+				field.setPrecision( (int) rep.getStepAttributeInteger( id_step, i, "field_precision" ) );
+				field.setTrimType( ValueMetaString.getTrimTypeByCode( rep.getStepAttributeString( id_step, i, "field_trim_type" ) ) );
+				//field.setRepeated( rep.getStepAttributeBoolean( id_step, i, "field_repeat" ) );
+
+				inputFields[i] = field;
+			  }*/
+        } catch (Exception e) {
+            throw new KettleException("Unexpected error reading step information from the repository", e);
+        }
+    }
+
+    @Override
+    public void saveRep(Repository rep, IMetaStore metaStore, ObjectId id_transformation, ObjectId id_step) throws KettleException {
+        try {
+            rep.saveStepAttribute(id_transformation, id_step, "spreadsheetKey", this.spreadsheetKey);
+            rep.saveStepAttribute(id_transformation, id_step, "worksheetId", this.worksheetId);
+           /* int nrfields = rep.countNrStepAttributes(id_step, "field_name");
+           
+	  	   for ( int i = 0; i < inputFields.length; i++ ) {
+			TextFileInputField field = inputFields[i];
+
+			rep.saveStepAttribute( id_transformation, id_step, i, "field_name", field.getName() );
+			rep.saveStepAttribute( id_transformation, id_step, i, "field_type", field.getTypeDesc() );
+			rep.saveStepAttribute( id_transformation, id_step, i, "field_format", field.getFormat() );
+			rep.saveStepAttribute( id_transformation, id_step, i, "field_currency", field.getCurrencySymbol() );
+			rep.saveStepAttribute( id_transformation, id_step, i, "field_decimal", field.getDecimalSymbol() );
+			rep.saveStepAttribute( id_transformation, id_step, i, "field_group", field.getGroupSymbol() );
+			//rep.saveStepAttribute( id_transformation, id_step, i, "field_nullif", field.getNullString() );
+			//rep.saveStepAttribute( id_transformation, id_step, i, "field_ifnull", field.getIfNullValue() );
+			rep.saveStepAttribute( id_transformation, id_step, i, "field_position", field.getPosition() );
+			rep.saveStepAttribute( id_transformation, id_step, i, "field_length", field.getLength() );
+			rep.saveStepAttribute( id_transformation, id_step, i, "field_precision", field.getPrecision() );
+			rep.saveStepAttribute( id_transformation, id_step, i, "field_trim_type", field.getTrimTypeCode() );
+			//rep.saveStepAttribute( id_transformation, id_step, i, "field_repeat", field.isRepeated() );
+		  }*/
+        } catch (Exception e) {
+            throw new KettleException("Unable to save step information to the repository for id_step=" + id_step, e);
+        }
+    }
+
+   /* @Override
+    public void getFields(RowMetaInterface inputRowMeta, String name, RowMetaInterface[] info, StepMeta nextStep, VariableSpace space, Repository repository, IMetaStore metaStore) throws KettleStepException {
+        try {
+            inputRowMeta.clear(); // Start with a clean slate, eats the input
+             for ( int i = 0; i < inputFields.length; i++ ) {
+			  TextFileInputField field = inputFields[i];
+
+			  int type = field.getType();
+			  if ( type == ValueMetaInterface.TYPE_NONE ) {
+				type = ValueMetaInterface.TYPE_STRING;
+			  }
+
+			  try {
+				ValueMetaInterface v = ValueMetaFactory.createValueMeta( field.getName(), type );
+				
+				v.setLength( field.getLength() );
+				v.setPrecision( field.getPrecision() );
+				v.setOrigin( name );
+				v.setConversionMask( field.getFormat() );
+				v.setDecimalSymbol( field.getDecimalSymbol() );
+				v.setGroupingSymbol( field.getGroupSymbol() );
+				v.setCurrencySymbol( field.getCurrencySymbol() );
+				//v.setDateFormatLenient( dateFormatLenient );
+				//v.setDateFormatLocale( dateFormatLocale );
+				v.setTrimType( field.getTrimType() );
+
+				inputRowMeta.addValueMeta( v );
+			  } catch ( Exception e ) {
+				throw new KettleStepException( e );
+			  }
+			}
+        } catch (Exception e) {
+
+        }
+    }*/
+
+    @Override
+    public void check(List<CheckResultInterface> remarks, TransMeta transMeta, StepMeta stepMeta, RowMetaInterface prev, String[] input, String[] output, RowMetaInterface info, VariableSpace space, Repository repository, IMetaStore metaStore) {
+        if (prev == null || prev.size() == 0) {
+            remarks.add(new CheckResult(CheckResultInterface.TYPE_RESULT_OK, "Not receiving any fields from previous steps.", stepMeta));
+        } else {
+            remarks.add(new CheckResult(CheckResultInterface.TYPE_RESULT_ERROR, String.format("Step is connected to previous one, receiving %1$d fields", prev.size()), stepMeta));
+        }
+
+        if (input.length > 0) {
+            remarks.add( new CheckResult(CheckResultInterface.TYPE_RESULT_ERROR, "Step is receiving info from other steps!", stepMeta) );
+        } else {
+            remarks.add(new CheckResult(CheckResultInterface.TYPE_RESULT_OK, "No input received from other steps.", stepMeta));
+        }
+    }
+  
+  @Override
+  public StepInterface getStep( StepMeta stepMeta, StepDataInterface stepDataInterface, int cnr, TransMeta tr, Trans trans ) {
+    return new PentahoGoogleSheetsPluginOutput( stepMeta, stepDataInterface, cnr, tr, trans );
+  }
+  
+  @Override
+  public StepDataInterface getStepData() {
+    return new PentahoGoogleSheetsPluginOutputData();
+  }
+}
+
