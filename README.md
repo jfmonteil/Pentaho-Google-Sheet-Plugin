@@ -2,7 +2,7 @@
 # Pentaho Google Spreadsheet Plugin (Google Sheet API V4 / Google Drive API V3)
 
 Jean-François Monteil
-jfmonteil@gmail.come
+jfmonteil@gmail.com
 
 As the google Spreadsheet API V3 comes close to depreciation (march 2020) I have developed this plugin using Google Spreadsheet API V4.
 
@@ -10,9 +10,9 @@ It contains 2 steps :
 * Penthao Google Sheets Input : Reads specified fields a google spreadsheet
 * Pentaho Google Sheets Output : Writes a google spreadsheet
 
-##install
+## Installation
 In *delivery rep* you will find a zip that you can unzip in your *pentaho/design-tools/data-integration/plugin* folder.
-Otherwise '''mvn install'''
+Otherwise ''' mvn install '''
 
 **Both require that you create a google app and that you download your Service Account JSON file in your *.kettle* directory in your user account.**
 **Tokens will also be create in *.kettle* directory */tokens*
