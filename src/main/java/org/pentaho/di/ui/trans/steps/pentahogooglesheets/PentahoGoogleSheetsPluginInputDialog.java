@@ -114,7 +114,6 @@ public class PentahoGoogleSheetsPluginInputDialog extends BaseStepDialog impleme
                 meta.setChanged();
             }
         };
-        changed = meta.hasChanged();
 
         ModifyListener contentListener = new ModifyListener() {
             @Override
@@ -122,6 +121,8 @@ public class PentahoGoogleSheetsPluginInputDialog extends BaseStepDialog impleme
                 // asyncUpdatePreview();
             }
         };
+		
+		changed = meta.hasChanged();
 
         FormLayout formLayout = new FormLayout();
         formLayout.marginWidth = Const.FORM_MARGIN;
@@ -420,7 +421,7 @@ public class PentahoGoogleSheetsPluginInputDialog extends BaseStepDialog impleme
                     NetHttpTransport HTTP_TRANSPORT=GoogleNetHttpTransport.newTrustedTransport();
 				    String APPLICATION_NAME = "pentaho-sheets";
                     JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
-                    String TOKENS_DIRECTORY_PATH = "public/tokens";
+                    String TOKENS_DIRECTORY_PATH = Const.getKettleDirectory() +"/tokens";
 					String scope=SheetsScopes.SPREADSHEETS_READONLY;
 					Drive service = new Drive.Builder(HTTP_TRANSPORT, JSON_FACTORY, PentahoGoogleSheetsPluginCredentials.getCredentialsJson(scope)).setApplicationName(APPLICATION_NAME).build();
                     testServiceAccountInfo.setText("");
@@ -443,22 +444,22 @@ public class PentahoGoogleSheetsPluginInputDialog extends BaseStepDialog impleme
                     NetHttpTransport HTTP_TRANSPORT=GoogleNetHttpTransport.newTrustedTransport();
 				    String APPLICATION_NAME = "pentaho-sheets";
                     JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
-                    String TOKENS_DIRECTORY_PATH = "public/tokens";   
+                    String TOKENS_DIRECTORY_PATH = Const.getKettleDirectory() +"/tokens";   
 					String scope="https://www.googleapis.com/auth/drive.readonly";
 					Drive service = new Drive.Builder(HTTP_TRANSPORT, JSON_FACTORY, PentahoGoogleSheetsPluginCredentials.getCredentialsJson(scope)).setApplicationName(APPLICATION_NAME).build();
 
                     FileList result = service.files().list().setQ("mimeType='application/vnd.google-apps.spreadsheet'").setPageSize(100).setFields("nextPageToken, files(id, name)").execute();
                     List<File> spreadsheets = result.getFiles();
-	   //.setQ("mimeType='application/vnd.google-apps.spreadsheet'")
                     int selectedSpreadsheet = -1;
                     int i=0;
 					String[] titles=new String[spreadsheets.size()];
 					for (File spreadsheet:spreadsheets) {
                         titles[i] = spreadsheet.getName()+" - "+spreadsheet.getId()+")";
-						i++;
+						
                         if (spreadsheet.getId().equals(spreadsheetKey.getText())) {
                             selectedSpreadsheet = i;
                         }
+						i++;
                     }
 
                     EnterSelectionDialog esd = new EnterSelectionDialog(shell, titles, "Spreadsheets",
@@ -489,7 +490,7 @@ public class PentahoGoogleSheetsPluginInputDialog extends BaseStepDialog impleme
 					NetHttpTransport HTTP_TRANSPORT=GoogleNetHttpTransport.newTrustedTransport();
 				    String APPLICATION_NAME = "pentaho-sheets";
                     JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
-                    String TOKENS_DIRECTORY_PATH = "public/tokens";
+                    String TOKENS_DIRECTORY_PATH = Const.getKettleDirectory() +"/tokens";
 					String scope=SheetsScopes.SPREADSHEETS_READONLY;
 					
 					Sheets service = new Sheets.Builder(HTTP_TRANSPORT, JSON_FACTORY, PentahoGoogleSheetsPluginCredentials.getCredentialsJson(scope)).setApplicationName(APPLICATION_NAME).build();

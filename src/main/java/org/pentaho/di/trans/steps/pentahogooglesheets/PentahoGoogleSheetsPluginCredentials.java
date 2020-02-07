@@ -18,11 +18,15 @@
  */
 package org.pentaho.di.trans.steps.pentahogooglesheets;
 
+import org.pentaho.di.core.vfs.KettleVFS;
+import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.*;
+import org.pentaho.di.core.Const;
+
 
 
 import com.google.api.client.auth.oauth2.Credential;
@@ -75,70 +79,23 @@ public class PentahoGoogleSheetsPluginCredentials {
 	public static Credential getCredentialsJson(String scope) throws IOException {
             
 			Credential credential=null;
-	        InputStream in = PentahoGoogleSheetsPluginCredentials.class.getResourceAsStream("/plugins/pentaho-googledrive-vfs/credentials/client_secret.json");//pentaho-sheets-261911-18ce0057e3d3.json
-            if (in == null) {
-			//logError("Resource not found");
-               throw new FileNotFoundException("Resource not found: /plugins/pentaho-googledrive-vfs/credentials/client_secret.json");			   
+	        //InputStream in = PentahoGoogleSheetsPluginCredentials.class.getResourceAsStream("/plugins/pentaho-googledrive-vfs/credentials/client_secret.json");//pentaho-sheets-261911-18ce0057e3d3.json
+            //logBasic("Getting credential json file from :"+Const.getKettleDirectory());
+            InputStream in=null;
+			try{
+		       in = KettleVFS.getInputStream( Const.getKettleDirectory() + "/client_secret.json");
+			}  catch (Exception e) {
+			//throw new KettleFileException("Exception",e.getMessage(),e);
+		    }
+			
+			if (in == null) {
+               throw new FileNotFoundException("Resource not found:"+ Const.getKettleDirectory() + "/client_secret.json");			   
             }
 			credential = GoogleCredential.fromStream(in).createScoped(Collections.singleton(scope));
             return credential;
 	}
 	
-		/* OLD SCHOOL
-	public static Sheets getSheetService(NetHttpTransport HTTP_TRANSPORT,JsonFactory JSON_FACTORY,String CLIENT_ID,String CREDENTIALS_FILE_PATH,String TOKENS_DIRECTORY_PATH,String HTTP_TRANSPORT) throws IOException 
-	{     	
-		 
-	
-    
-		
-        GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(in));
-
-        // Build flow and trigger user authorization request.
-        if (clientSecrets == null) {
-            //logError("Resource not found");
-			throw new FileNotFoundException("clientSecrets Null ");
-        }
-		FileDataStoreFactory fdf = new FileDataStoreFactory(new java.io.File(TOKENS_DIRECTORY_PATH));
-		if (fdf == null) {
-            //logError("data store Null");
-			throw new FileNotFoundException("FileDataStore Factory Null ");
-        }
-		
-		GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(HTTP_TRANSPORT, JSON_FACTORY, clientSecrets, SCOPES)
-                .setDataStoreFactory(fdf)
-				.setAccessType("offline")
-                .build();
-		
-		
-		if (flow == null) {
-            throw new FileNotFoundException("Could not create Authorization");
-        }
-       LocalServerReceiver receiver = new LocalServerReceiver.Builder().setPort(8888).build();
-        return new AuthorizationCodeInstalledApp(flow, receiver).authorize(CLIENT_ID);
-		
-    }*/
 
 	
-	public static String base64EncodePrivateKeyStore(KeyStore pks) throws GeneralSecurityException, IOException {
-        if (pks != null && pks.containsAlias("privatekey")) {
-            ByteArrayOutputStream privateKeyStream = new ByteArrayOutputStream();
-            //pks.store(privateKeyStream, GoogleSpreadsheet.SECRET);
-            return Base64.encodeBase64String(privateKeyStream.toByteArray());
-        }
-        return "";
-    }
-
-    public static KeyStore base64DecodePrivateKeyStore(String pks) throws GeneralSecurityException, IOException {
-        if (pks != null && !pks.equals("")) {
-            ByteArrayInputStream privateKeyStream = new ByteArrayInputStream(Base64.decodeBase64(pks));
-            if (privateKeyStream.available() > 0) {
-                KeyStore privateKeyStore = KeyStore.getInstance("PKCS12");
-                //privateKeyStore.load(privateKeyStream, GoogleSpreadsheet.SECRET);
-                if (privateKeyStore.containsAlias("privatekey")) {
-                    return privateKeyStore;
-                }
-            }
-        }
-        return null;
-    }
+	
 }

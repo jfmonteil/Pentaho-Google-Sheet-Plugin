@@ -68,12 +68,12 @@ import org.pentaho.di.core.injection.InjectionSupported;
 	id = "PentahoGoogleSheetsPluginInputMeta", 
 	image = "PentahoGoogleSheetsPluginInput.svg", 
 	i18nPackageName = "org.pentaho.di.trans.steps.PentahoGoogleSheetsPluginInput",
-    name = "Pentaho Google Sheets Input", 
-	description = "Google Sheet Pentaho Plugin API V4", 	
+    name = "PentahoGoogleSheetsPluginInput.Step.Name", 
+	description = "PentahoGoogleSheetsPluginInput.Step.Name", 	
 	categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.Input"
 	) 
 	
-@InjectionSupported( localizationPrefix = "injection.Injection.", groups = { "SHEET", "OUTPUT_FIELDS" } )
+@InjectionSupported( localizationPrefix = "PentahoGoogleSheetsPluginInput.injection.", groups = { "SHEET", "INPUT_FIELDS" } )
 public class PentahoGoogleSheetsPluginInputMeta extends BaseStepMeta implements StepMetaInterface {
 	
 	private static Class<?> PKG = PentahoGoogleSheetsPluginInputMeta.class; // for i18n purposes, needed by Translator2!!   $NON-NLS-1$
@@ -89,6 +89,7 @@ public class PentahoGoogleSheetsPluginInputMeta extends BaseStepMeta implements 
 	@Injection( name = "worksheetId", group = "SHEET" )
 	private String worksheetId;
 	
+	@InjectionDeep
 	private TextFileInputField[] inputFields;
 	
     @Override
@@ -105,10 +106,6 @@ public class PentahoGoogleSheetsPluginInputMeta extends BaseStepMeta implements 
 		return inputFields;
 	}
 
-	  /**
-	   * @param inputFields
-	   *          The input fields to set.
-	   */
 
     public String getSpreadsheetKey() {
         return this.spreadsheetKey == null ? "" : this.spreadsheetKey;

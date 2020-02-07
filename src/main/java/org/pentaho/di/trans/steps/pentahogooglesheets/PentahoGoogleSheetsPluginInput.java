@@ -27,6 +27,7 @@ import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.*;
 import org.pentaho.di.i18n.BaseMessages;
+import org.pentaho.di.core.Const;
 
 import org.pentaho.di.core.variables.Variables;
 
@@ -84,7 +85,7 @@ public class PentahoGoogleSheetsPluginInput extends BaseStep implements StepInte
         JsonFactory JSON_FACTORY=null;
 		NetHttpTransport HTTP_TRANSPORT = null;
 		String APPLICATION_NAME = "pentaho-sheets";
-		String TOKENS_DIRECTORY_PATH = "public/tokens";
+		String TOKENS_DIRECTORY_PATH = Const.getKettleDirectory() +"/tokens";
         String scope=SheetsScopes.SPREADSHEETS_READONLY;
      
 	    try {

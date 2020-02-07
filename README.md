@@ -1,67 +1,58 @@
 
-# Project Title Here
+# Pentaho Google Spreadsheet Plugin (Google Sheet API V4 / Google Drive API V3)
 
-#### Pre-requisites for building the project:
-* Maven, version 3+
-* Java JDK 1.8
-* This [settings.xml](https://github.com/pentaho/maven-parent-poms/blob/master/maven-support-files/settings.xml) in your <user-home>/.m2 directory
+Jean-François Monteil
+jfmonteil@gmail.come
 
-#### Building it
+As the google Spreadsheet API V3 comes close to depreciation (march 2020) I have developed this plugin using Google Spreadsheet API V4.
 
-__Build for nightly/release__
+It contains 2 steps :
+* Penthao Google Sheets Input : Reads specified fields a google spreadsheet
+* Pentaho Google Sheets Output : Writes a google spreadsheet
 
-All required profiles are activated by the presence of a property named "release".
+##install
+In *delivery rep* you will find a zip that you can unzip in your *pentaho/design-tools/data-integration/plugin* folder.
+Otherwise '''mvn install'''
 
-```
-$ mvn clean install -Drelease
-```
+**Both require that you create a google app and that you download your Service Account JSON file in your *.kettle* directory in your user account.**
+**Tokens will also be create in *.kettle* directory */tokens*
+The service account should be parameterized with both google drive and google spreadsheet  API’s
 
-This will build, unit test, and package the whole project (all of the sub-modules). The artifact will be generated in: ```target```
+## Input step
+### Credential Tab
+Lets you test your access to the API
+On success you should see the following screen
 
-__Build for CI/dev__
+### Spreadsheet tab
+Let’s you specify or browse for spreadsheets existing in the service account drive or for the ones that are shared with the service account email.
 
-The `release` builds will compile the source for production (meaning potential obfuscation and/or uglification). To build without that happening, just eliminate the `release` property.
+### Fields tab
+Lets you select from the fields of the sheet.
+Fields name are always defined in the first line of the google spreadsheet.
+Note that they are all types as String for the moment.
 
-```
-$ mvn clean install
-```
+## Output step
+Lets you write data into a sheet (existing or not)
 
-#### Running the tests
+### Credential Tab
+Lets  you test your access to the APIOn success you should see the following screen
 
-__Unit tests__
+### Spreadsheet tab
 
-This will run all tests in the project (and sub-modules).
-```
-$ mvn test
-```
+* sreadsheet key
+Lets you specify or browse for spreadsheets existing in the service account drive or for the ones that are shared with the service account email.
+if you type in a sheet name (that does not exist in the drive) it will attempt to create a sheet it the "create" checkbox is ticked.
 
-If you want to remote debug a single java unit test (default port is 5005):
-```
-$ cd core
-$ mvn test -Dtest=<<YourTest>> -Dmaven.surefire.debug
-```
+* Create sheet if it does not exist checkbox
+If the checkbox is checked then if the Spreadsheet Key spécified in the field Spreadsheet key does not exist it will create a new spreadsheet within the service account drive (note that this account has no UI)
 
-__Integration tests__
-In addition to the unit tests, there are integration tests in the core project.
-```
-$ mvn verify -DrunITs
-```
+* Share with email
+That is why the Share with user email field let’s you specify the email of a user who will get full rights on the freshly created file.
 
-To run a single integration test:
-```
-$ mvn verify -DrunITs -Dit.test=<<YourIT>>
-```
+All steps inbound fields are written in the output file
 
-To run a single integration test in debug mode (for remote debugging in an IDE) on the default port of 5005:
-```
-$ mvn verify -DrunITs -Dit.test=<<YourIT>> -Dmaven.failsafe.debug
-```
-
-__IntelliJ__
-
-* Don't use IntelliJ's built-in maven. Make it use the same one you use from the commandline.
-  * Project Preferences -> Build, Execution, Deployment -> Build Tools -> Maven ==> Maven home directory
-
-
+## Metadata injection.
+Both steps fully support metadata injection
+See mi-input-output transformations in the sample repository.
 
  

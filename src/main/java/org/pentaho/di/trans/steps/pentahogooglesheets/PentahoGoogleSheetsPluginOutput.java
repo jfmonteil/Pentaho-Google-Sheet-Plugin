@@ -18,7 +18,7 @@
  */
 package org.pentaho.di.trans.steps.pentahogooglesheets;
 
-
+import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.row.RowDataUtil;
 import org.pentaho.di.core.row.RowMeta;
@@ -27,12 +27,18 @@ import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.*;
 import org.pentaho.di.i18n.BaseMessages;
+import org.pentaho.di.trans.step.BaseStep;
+import org.pentaho.di.core.Const;
 
-import org.pentaho.di.core.variables.Variables;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.googleapis.batch.BatchRequest;
+import com.google.api.client.googleapis.batch.json.JsonBatchCallback;
+import com.google.api.client.googleapis.json.GoogleJsonError;
+import com.google.api.client.http.HttpHeaders;
+
 
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
@@ -56,6 +62,7 @@ import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.DriveScopes;
 import com.google.api.services.drive.model.File;
 import com.google.api.services.drive.model.FileList;
+import com.google.api.services.drive.model.Permission;
 
 
 import java.io.IOException;
@@ -103,7 +110,7 @@ public class PentahoGoogleSheetsPluginOutput extends BaseStep implements StepInt
         JsonFactory JSON_FACTORY=null;
 		NetHttpTransport HTTP_TRANSPORT = null;
 		String APPLICATION_NAME = "pentaho-sheets";
-		String TOKENS_DIRECTORY_PATH = "public/tokens";
+		String TOKENS_DIRECTORY_PATH = Const.getKettleDirectory() +"/tokens";
         String scope=SheetsScopes.SPREADSHEETS_READONLY;
 		Boolean exists=false;
 
@@ -123,31 +130,32 @@ public class PentahoGoogleSheetsPluginOutput extends BaseStep implements StepInt
                     HTTP_TRANSPORT=GoogleNetHttpTransport.newTrustedTransport();
 				    APPLICATION_NAME = "pentaho-sheets";
                     JSON_FACTORY = JacksonFactory.getDefaultInstance();
-                    TOKENS_DIRECTORY_PATH = "public/tokens";   
-					scope="https://www.googleapis.com/auth/drive.readonly";
+                    TOKENS_DIRECTORY_PATH = Const.getKettleDirectory() +"/tokens";   
+					scope="https://www.googleapis.com/auth/drive";
 					Drive service = new Drive.Builder(HTTP_TRANSPORT, JSON_FACTORY, PentahoGoogleSheetsPluginCredentials.getCredentialsJson(scope)).setApplicationName(APPLICATION_NAME).build();
-                    FileList result = service.files().list().setPageSize(100).setFields("nextPageToken, files(id, name)").execute();
+                    String wsID=environmentSubstitute(meta.getSpreadsheetKey());
+					//"properties has { key='id' and value='"+wsID+"'}";
+					String q="mimeType='application/vnd.google-apps.spreadsheet'";
+					FileList result = service.files().list().setQ(q).setPageSize(100).setFields("nextPageToken, files(id, name)").execute();
                     List<File> spreadsheets = result.getFiles();
-	   //.setQ("mimeType='application/vnd.google-apps.spreadsheet'")
-               
-					
-					String wsID=environmentSubstitute(meta.getSpreadsheetKey());
+	  					
 					for (File spreadsheet:spreadsheets) {
-                        if(wsID.equals(spreadsheet.getId()))
+                        logBasic(wsID+" VS "+spreadsheet.getId());
+						if(wsID.equals(spreadsheet.getId()))
 						{
 							exists=true; //file exists
 							logBasic("Spreadsheet:"+ wsID +" exists");
 						}
 			                     
                     }			
-				    //Init Service
-					scope="https://www.googleapis.com/auth/spreadsheets";
-					data.service = new Sheets.Builder(HTTP_TRANSPORT, JSON_FACTORY, PentahoGoogleSheetsPluginCredentials.getCredentialsJson(scope)).setApplicationName(APPLICATION_NAME).build();
-								
-					if(!exists)
+					//If it does not exist & create checkbox is checker create it.		
+					//logBasic("Create if Not exist is :"+meta.getCreate());
+					if(!exists && meta.getCreate())
 					{						
-						logBasic("SpreadSheet:"+ environmentSubstitute(meta.getSpreadsheetKey())+" does not exist Creating it");
-						
+						//logBasic("SpreadSheet:"+ environmentSubstitute(meta.getSpreadsheetKey())+" does not exist Creating it");
+						 //Init Service
+					    scope="https://www.googleapis.com/auth/spreadsheets";
+					    data.service = new Sheets.Builder(HTTP_TRANSPORT, JSON_FACTORY, PentahoGoogleSheetsPluginCredentials.getCredentialsJson(scope)).setApplicationName(APPLICATION_NAME).build();
 						
 						//If it does not exist create it.
 						Spreadsheet spreadsheet = new Spreadsheet().setProperties(new SpreadsheetProperties().setTitle(wsID));
@@ -159,7 +167,7 @@ public class PentahoGoogleSheetsPluginOutput extends BaseStep implements StepInt
 						//If it does not exist we use the Worksheet ID to rename 'Sheet ID'
 						if(environmentSubstitute(meta.getWorksheetId())!="Sheet1")
 						{
-    						logBasic("Sheet:"+ environmentSubstitute(meta.getWorksheetId())+" Renaming Sheet1 title to "+environmentSubstitute(meta.getWorksheetId()));
+    						//logBasic("Sheet:"+ environmentSubstitute(meta.getWorksheetId())+" Renaming Sheet1 title to "+environmentSubstitute(meta.getWorksheetId()));
 
 							//Getting "Sheet" 1 ID
 							/*Spreadsheet response1= data.service.spreadsheets().get(environmentSubstitute(meta.getSpreadsheetKey())).setIncludeGridData(false).execute();          
@@ -174,7 +182,7 @@ public class PentahoGoogleSheetsPluginOutput extends BaseStep implements StepInt
 							UpdateSheetPropertiesRequest rename = new UpdateSheetPropertiesRequest().setProperties(title);
 							// set fields you want to update
 							rename.setFields("title");
-							logBasic("Changing title to:"+ environmentSubstitute(meta.getWorksheetId()));				
+							logBasic("Changing worksheet title to:"+ environmentSubstitute(meta.getWorksheetId()));				
 							List<Request> requests = new ArrayList<>();
 							Request request1 = new Request().setUpdateSheetProperties(rename);
 							requests.add(request1);
@@ -182,7 +190,46 @@ public class PentahoGoogleSheetsPluginOutput extends BaseStep implements StepInt
 							requestBody.setRequests(requests);
 		                     // now you can execute batchUpdate with your sheetsService and SHEET_ID
 							data.service.spreadsheets().batchUpdate(spreadsheetID, requestBody).execute();
+							//now if share email is not null we share with R/W with the email given
+							if(meta.getShareEmail()!=null)
+							{
+								String fileId=spreadsheetID;
+								JsonBatchCallback<Permission> callback = new JsonBatchCallback<Permission>() {
+								  @Override
+								  public void onFailure(GoogleJsonError e,
+														HttpHeaders responseHeaders)
+									  throws IOException {
+									// Handle error
+									logError("Failed sharing file" + e.getMessage());
+								  }
+
+								  @Override
+								  public void onSuccess(Permission permission,
+														HttpHeaders responseHeaders)
+									  throws IOException {
+									logBasic("Shared successfully : Permission ID: " + permission.getId());
+								  }
+								};
+								logBasic("Sharing sheet with:"+ environmentSubstitute(meta.getShareEmail()));
+								BatchRequest batch = service.batch();
+								Permission userPermission = new Permission()
+									.setType("user")
+									.setRole("writer")
+									.setEmailAddress(environmentSubstitute(meta.getShareEmail()));
+								//Using Google drive service here not spreadsheet data.service
+								service.permissions().create(fileId, userPermission)
+									.setFields("id")
+									.queue(batch, callback);
+								batch.execute();
+
+							}
+						
 						}
+					}
+					if(!exists && !meta.getCreate())
+					{
+						logError("File does not Exist");
+						return false;
 					}
 						
 						
@@ -198,24 +245,6 @@ public class PentahoGoogleSheetsPluginOutput extends BaseStep implements StepInt
         return false;
     }
    
-/*public static List<List<Object>> getData() {
-
-		List<Object> data1 = new ArrayList<Object>();
-		data1.add("jagadeesh");
-		data1.add("jagadeesh");
-		data1.add("jagadeesh");
-
-		List<Object> data2 = new ArrayList<Object>();
-		data2.add("jagadeesh");
-		data2.add("jagadeesh");
-		data2.add("jagadeesh");
-
-		List<List<Object>> data = new ArrayList<List<Object>>();
-		data.add(data1);
-		data.add(data2);
-
-		return data;
-	}*/
 
   public boolean processRow( StepMetaInterface smi, StepDataInterface sdi ) throws KettleException {
     
@@ -245,16 +274,29 @@ public class PentahoGoogleSheetsPluginOutput extends BaseStep implements StepInt
 		try {
 				//Object[] outputRowData = getRow();
 				if (row == null) {
-					        if(data.currentRow>0){
-							logBasic("Clearing Sheet");
-							ValueRange body = new ValueRange().setValues(data.rows);
-							ClearValuesRequest requestBody = new ClearValuesRequest();
-							
+					        if(data.currentRow>0){													
+							ClearValuesRequest requestBody = new ClearValuesRequest();							
 							String range=environmentSubstitute(meta.getWorksheetId());
+
+							logBasic("Clearing range" +range +" in Spreadsheet :"+ environmentSubstitute(meta.getSpreadsheetKey()));
+                            //Creating service
+                            NetHttpTransport HTTP_TRANSPORT=GoogleNetHttpTransport.newTrustedTransport();
+                            JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
+							String APPLICATION_NAME = "pentaho-sheets";
+							String TOKENS_DIRECTORY_PATH = Const.getKettleDirectory() +"/tokens";
+							String scope=SheetsScopes.SPREADSHEETS;
+						    data.service = new Sheets.Builder(HTTP_TRANSPORT, JSON_FACTORY, PentahoGoogleSheetsPluginCredentials.getCredentialsJson(scope)).setApplicationName(APPLICATION_NAME).build();
+                            
+							
+							
 							Sheets.Spreadsheets.Values.Clear request = data.service.spreadsheets().values().clear(environmentSubstitute(meta.getSpreadsheetKey()), range, requestBody);
-                            ClearValuesResponse response = request.execute();
-					        
-							logBasic("Writing do Sheet");
+                            logBasic("Clearing Sheet:" +range +"in Spreadsheet :"+ environmentSubstitute(meta.getSpreadsheetKey()));
+							if(request!=null){
+							ClearValuesResponse response = request.execute();
+							} else logBasic("Nothing to clear");
+							
+							logBasic("Writing to Sheet");
+							ValueRange body = new ValueRange().setValues(data.rows);
 							String valueInputOption="USER_ENTERED";
 		                    UpdateValuesResponse result = data.service.spreadsheets().values().update(environmentSubstitute(meta.getSpreadsheetKey()), range, body).setValueInputOption(valueInputOption).execute();
 							}
@@ -268,16 +310,22 @@ public class PentahoGoogleSheetsPluginOutput extends BaseStep implements StepInt
 					r= new ArrayList<Object>();
 					for (int i = 0; i < data.outputRowMeta.size(); i++) {
 						int length=row.length;
+						//logBasic("Row length:"+length+" VS rowMeta "+data.outputRowMeta.size()+" i="+i);
+
 						if(i<length && row[i]!=null)
 						{
 						r.add(row[i].toString());
 						}
 						else { r.add("");}
 					}
-					logBasic("Adding row:"+Integer.toString(data.currentRow));
+					//logBasic("Adding row:"+Integer.toString(data.currentRow));
 
 					data.rows.add(r);
+					//logBasic("Added row:"+Integer.toString(data.currentRow));
+
 					putRow(data.outputRowMeta, row);
+					//logBasic("Puting row:"+Integer.toString(data.currentRow));
+
 
 				}
 		} catch (Exception e) {
