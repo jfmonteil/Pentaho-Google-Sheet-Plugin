@@ -15,13 +15,13 @@ In *delivery rep* you will find a zip that you can unzip in your *pentaho/design
 Otherwise ''' mvn install '''
 
 **Both require that you create a google app and that you download your Service Account JSON file in your *.kettle* directory in your user account.**
-**Tokens will also be create in *.kettle* directory */tokens*
+** Tokens will also be create in *.kettle* directory */tokens* **
 The service account should be parameterized with both google drive and google spreadsheet  API’s
 
 ## Input step
 ### Credential Tab
-Lets you test your access to the API
-On success you should see the following screen
+Lets you test your access to the API.
+On success you should see a success message
 
 ### Spreadsheet tab
 Let’s you specify or browse for spreadsheets existing in the service account drive or for the ones that are shared with the service account email.
@@ -39,14 +39,14 @@ Lets  you test your access to the APIOn success you should see the following scr
 
 ### Spreadsheet tab
 
-* sreadsheet key
+* sreadsheet key : 
 Lets you specify or browse for spreadsheets existing in the service account drive or for the ones that are shared with the service account email.
 if you type in a sheet name (that does not exist in the drive) it will attempt to create a sheet it the "create" checkbox is ticked.
 
-* Create sheet if it does not exist checkbox
+* Create sheet if it does not exist checkbox : 
 If the checkbox is checked then if the Spreadsheet Key spécified in the field Spreadsheet key does not exist it will create a new spreadsheet within the service account drive (note that this account has no UI)
 
-* Share with email
+* Share with email : 
 That is why the Share with user email field let’s you specify the email of a user who will get full rights on the freshly created file.
 
 All steps inbound fields are written in the output file
