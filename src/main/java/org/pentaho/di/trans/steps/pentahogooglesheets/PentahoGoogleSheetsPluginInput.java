@@ -98,7 +98,7 @@ public class PentahoGoogleSheetsPluginInput extends BaseStep implements StepInte
         
 		if (super.init(smi, sdi)) {
             try {				
-				Sheets service = new Sheets.Builder(HTTP_TRANSPORT, JSON_FACTORY, PentahoGoogleSheetsPluginCredentials.getCredentialsJson(scope)).setApplicationName(APPLICATION_NAME).build();
+				Sheets service = new Sheets.Builder(HTTP_TRANSPORT, JSON_FACTORY, PentahoGoogleSheetsPluginCredentials.getCredentialsJson(scope,environmentSubstitute(meta.getJsonCredentialPath()))).setApplicationName(APPLICATION_NAME).build();
 				String range=environmentSubstitute(meta.getWorksheetId());
 				ValueRange response = service.spreadsheets().values().get(environmentSubstitute(meta.getSpreadsheetKey()),range).execute();             
 				if(response==null) {

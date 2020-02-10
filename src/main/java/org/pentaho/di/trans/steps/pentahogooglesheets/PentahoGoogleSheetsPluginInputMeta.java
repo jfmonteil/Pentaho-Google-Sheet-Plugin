@@ -70,7 +70,8 @@ import org.pentaho.di.core.injection.InjectionSupported;
 	i18nPackageName = "org.pentaho.di.trans.steps.PentahoGoogleSheetsPluginInput",
     name = "PentahoGoogleSheetsPluginInput.Step.Name", 
 	description = "PentahoGoogleSheetsPluginInput.Step.Name", 	
-	categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.Input"
+	categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.Input",
+	documentationUrl ="https://github.com/jfmonteil/Pentaho-Google-Sheet-Plugin/blob/master/README.md"
 	) 
 	
 @InjectionSupported( localizationPrefix = "PentahoGoogleSheetsPluginInput.injection.", groups = { "SHEET", "INPUT_FIELDS" } )
@@ -81,7 +82,8 @@ public class PentahoGoogleSheetsPluginInputMeta extends BaseStepMeta implements 
       super(); // allocate BaseStepMeta
 	  allocate(0);
     }
-
+    @Injection( name = "jsonCrendentialPath", group = "SHEET" )
+    private String jsonCredentialPath;
 
 	@Injection( name = "spreadsheetKey", group = "SHEET" )
     private String spreadsheetKey;
@@ -96,6 +98,16 @@ public class PentahoGoogleSheetsPluginInputMeta extends BaseStepMeta implements 
     public void setDefault() {   
         this.spreadsheetKey = "";
         this.worksheetId = "";  
+		this.jsonCredentialPath = Const.getKettleDirectory()+ "/client_secret.json";
+
+    }
+	
+	public String getJsonCredentialPath() {
+        return this.jsonCredentialPath == null ? "" : this.jsonCredentialPath;
+    }
+
+    public void setJsonCredentialPath(String key) {
+        this.jsonCredentialPath = key;
     }
 		
     public String getDialogClassName() {
@@ -137,6 +149,7 @@ public class PentahoGoogleSheetsPluginInputMeta extends BaseStepMeta implements 
      
         int nrKeys = inputFields.length;
         retval.allocate(nrKeys);
+		retval.setJsonCredentialPath(this.jsonCredentialPath);
 		retval.setSpreadsheetKey(this.spreadsheetKey);
         retval.setWorksheetId(this.worksheetId);
 		for ( int i = 0; i < nrKeys; i++ ) {
@@ -151,7 +164,8 @@ public class PentahoGoogleSheetsPluginInputMeta extends BaseStepMeta implements 
         try {         
             xml.append(XMLHandler.addTagValue("worksheetId", this.worksheetId));
 			xml.append(XMLHandler.addTagValue("spreadsheetKey", this.spreadsheetKey));
-     						
+     		xml.append(XMLHandler.addTagValue("jsonCredentialPath", this.jsonCredentialPath));
+				
             xml.append(XMLHandler.openTag("fields"));
             for ( int i = 0; i < inputFields.length; i++ ) {
 			  TextFileInputField field = inputFields[i];
@@ -182,6 +196,7 @@ public class PentahoGoogleSheetsPluginInputMeta extends BaseStepMeta implements 
            
             this.worksheetId = XMLHandler.getTagValue(stepnode, "worksheetId");
             this.spreadsheetKey = XMLHandler.getTagValue(stepnode, "spreadsheetKey");
+            this.jsonCredentialPath = XMLHandler.getTagValue(stepnode, "jsonCredentialPath");
 
             Node fields = XMLHandler.getSubNode(stepnode, "fields");
             int nrfields = XMLHandler.countNodes(fields, "field");
@@ -220,6 +235,7 @@ public class PentahoGoogleSheetsPluginInputMeta extends BaseStepMeta implements 
 
             this.worksheetId = rep.getStepAttributeString(id_step, "worksheetId");
             this.spreadsheetKey = rep.getStepAttributeString(id_step, "spreadsheetKey");
+            this.jsonCredentialPath = rep.getStepAttributeString(id_step, "jsonCredentialPath");
 
             int nrfields = rep.countNrStepAttributes(id_step, "field_name");
 
@@ -254,7 +270,9 @@ public class PentahoGoogleSheetsPluginInputMeta extends BaseStepMeta implements 
         try {
             rep.saveStepAttribute(id_transformation, id_step, "spreadsheetKey", this.spreadsheetKey);
             rep.saveStepAttribute(id_transformation, id_step, "worksheetId", this.worksheetId);
-            int nrfields = rep.countNrStepAttributes(id_step, "field_name");
+            rep.saveStepAttribute(id_transformation, id_step, "jsonCredentialPath", this.jsonCredentialPath);
+
+		    int nrfields = rep.countNrStepAttributes(id_step, "field_name");
            
 		for ( int i = 0; i < inputFields.length; i++ ) {
 			TextFileInputField field = inputFields[i];

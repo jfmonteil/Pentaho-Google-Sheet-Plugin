@@ -70,6 +70,8 @@ import org.pentaho.di.ui.core.widget.ComboValuesSelectionListener;
 import org.pentaho.di.ui.core.widget.TableView;
 import org.pentaho.di.ui.core.widget.TextVar;
 import org.pentaho.di.ui.trans.step.BaseStepDialog;
+import org.pentaho.di.core.variables.Variables;
+
 
 import javax.security.auth.x500.X500Principal;
 import java.io.FileInputStream;
@@ -86,10 +88,8 @@ public class PentahoGoogleSheetsPluginInputDialog extends BaseStepDialog impleme
 
     private final PentahoGoogleSheetsPluginInputMeta meta;
 
-    private Label privateKeyInfo;
     private Label testServiceAccountInfo;
-  //  private Text serviceEmail;
-  //  private String privateKeyStore;
+    private TextVar privateKeyStore;
     private TextVar spreadsheetKey;
     private TextVar worksheetId;
     private TableView wFields;
@@ -172,20 +172,51 @@ public class PentahoGoogleSheetsPluginInputDialog extends BaseStepDialog impleme
         serviceAccountLayout.marginWidth = 3;
         serviceAccountLayout.marginHeight = 3;
         serviceAccountComposite.setLayout(serviceAccountLayout);
+		
+		// privateKey json - Label
+        Label privateKeyLabel = new Label( serviceAccountComposite, SWT.RIGHT );
+        privateKeyLabel.setText( "Json credential file (default .kettle directory/client-secret.json is used) :" );
+        props.setLook( privateKeyLabel );
+        FormData privateKeyLabelForm = new FormData();
+        privateKeyLabelForm.top = new FormAttachment( 0, margin );
+        privateKeyLabelForm.left = new FormAttachment( 0, 0 );
+        privateKeyLabelForm.right = new FormAttachment( middle, -margin );
+        privateKeyLabel.setLayoutData( privateKeyLabelForm );
 
+        // privateKey - Button
+        Button privateKeyButton = new Button( serviceAccountComposite, SWT.PUSH | SWT.CENTER );
+        props.setLook( privateKeyButton );
+        privateKeyButton.setText( "Browse" );
+        FormData privateKeyButtonForm = new FormData();
+        privateKeyButtonForm.top = new FormAttachment( 0, margin );
+		privateKeyButtonForm.right = new FormAttachment(100, 0);
+        privateKeyButton.setLayoutData( privateKeyButtonForm );
+
+      
+	   // privatekey - Text
+        privateKeyStore = new TextVar(transMeta,serviceAccountComposite, SWT.SINGLE | SWT.LEFT | SWT.BORDER);
+        props.setLook(privateKeyStore);
+        privateKeyStore.addModifyListener(modifiedListener);
+        FormData privateKeyStoreData = new FormData();
+        privateKeyStoreData.top = new FormAttachment(0, margin);
+        privateKeyStoreData.left = new FormAttachment(middle, 0);
+		privateKeyStoreData.right = new FormAttachment(privateKeyButton, -margin);
+        privateKeyStore.setLayoutData(privateKeyStoreData);
+      
+     
         // test service - Button
         Button testServiceAccountButton = new Button(serviceAccountComposite, SWT.PUSH | SWT.CENTER);
         props.setLook(testServiceAccountButton);
         testServiceAccountButton.setText("Test Connection");
         FormData testServiceAccountButtonData = new FormData();
-        testServiceAccountButtonData.top = new FormAttachment(0, margin);
+        testServiceAccountButtonData.top = new FormAttachment(privateKeyButton, margin);
         testServiceAccountButtonData.left = new FormAttachment(0, 0);
         testServiceAccountButton.setLayoutData(testServiceAccountButtonData);
 
         testServiceAccountInfo = new Label(serviceAccountComposite, SWT.LEFT);
         props.setLook(testServiceAccountInfo);
         FormData testServiceAccountInfoData = new FormData();
-        testServiceAccountInfoData.top = new FormAttachment(0, margin);
+        testServiceAccountInfoData.top = new FormAttachment(privateKeyButton, margin);
         testServiceAccountInfoData.left = new FormAttachment(middle, 0);
         testServiceAccountInfoData.right = new FormAttachment(100, 0);
         testServiceAccountInfo.setLayoutData(testServiceAccountInfoData);
@@ -411,6 +442,20 @@ public class PentahoGoogleSheetsPluginInputDialog extends BaseStepDialog impleme
             }
         };
         wStepname.addSelectionListener(lsDef);
+				//credential.json file selection
+		privateKeyButton.addSelectionListener( new SelectionAdapter() {
+            @Override
+            public void widgetSelected( SelectionEvent e ) {
+                FileDialog dialog = new FileDialog( shell, SWT.OPEN );
+                dialog.setFilterExtensions( new String[] { "*json", "*" } );
+                dialog.setFilterNames( new String[] { "credential JSON file", "All Files" } );
+                String filename = dialog.open();
+                if ( filename != null ) {
+                     privateKeyStore.setText(filename);
+					 meta.setChanged();
+                }
+            }
+        } );
 
 
 //testing connection to Google with API V4
@@ -423,7 +468,7 @@ public class PentahoGoogleSheetsPluginInputDialog extends BaseStepDialog impleme
                     JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
                     String TOKENS_DIRECTORY_PATH = Const.getKettleDirectory() +"/tokens";
 					String scope=SheetsScopes.SPREADSHEETS_READONLY;
-					Drive service = new Drive.Builder(HTTP_TRANSPORT, JSON_FACTORY, PentahoGoogleSheetsPluginCredentials.getCredentialsJson(scope)).setApplicationName(APPLICATION_NAME).build();
+					Drive service = new Drive.Builder(HTTP_TRANSPORT, JSON_FACTORY, PentahoGoogleSheetsPluginCredentials.getCredentialsJson(scope,transMeta.environmentSubstitute(privateKeyStore.getText()))).setApplicationName(APPLICATION_NAME).build();
                     testServiceAccountInfo.setText("");
                     
                     if (service == null) {
@@ -446,7 +491,7 @@ public class PentahoGoogleSheetsPluginInputDialog extends BaseStepDialog impleme
                     JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
                     String TOKENS_DIRECTORY_PATH = Const.getKettleDirectory() +"/tokens";   
 					String scope="https://www.googleapis.com/auth/drive.readonly";
-					Drive service = new Drive.Builder(HTTP_TRANSPORT, JSON_FACTORY, PentahoGoogleSheetsPluginCredentials.getCredentialsJson(scope)).setApplicationName(APPLICATION_NAME).build();
+					Drive service = new Drive.Builder(HTTP_TRANSPORT, JSON_FACTORY, PentahoGoogleSheetsPluginCredentials.getCredentialsJson(scope,transMeta.environmentSubstitute(privateKeyStore.getText()))).setApplicationName(APPLICATION_NAME).build();
 
                     FileList result = service.files().list().setQ("mimeType='application/vnd.google-apps.spreadsheet'").setPageSize(100).setFields("nextPageToken, files(id, name)").execute();
                     List<File> spreadsheets = result.getFiles();
@@ -493,8 +538,8 @@ public class PentahoGoogleSheetsPluginInputDialog extends BaseStepDialog impleme
                     String TOKENS_DIRECTORY_PATH = Const.getKettleDirectory() +"/tokens";
 					String scope=SheetsScopes.SPREADSHEETS_READONLY;
 					
-					Sheets service = new Sheets.Builder(HTTP_TRANSPORT, JSON_FACTORY, PentahoGoogleSheetsPluginCredentials.getCredentialsJson(scope)).setApplicationName(APPLICATION_NAME).build();
-					Spreadsheet response1= service.spreadsheets().get(spreadsheetKey.getText()).setIncludeGridData(false).execute();
+					Sheets service = new Sheets.Builder(HTTP_TRANSPORT, JSON_FACTORY, PentahoGoogleSheetsPluginCredentials.getCredentialsJson(scope,transMeta.environmentSubstitute(privateKeyStore.getText()))).setApplicationName(APPLICATION_NAME).build();
+					Spreadsheet response1= service.spreadsheets().get(transMeta.environmentSubstitute(spreadsheetKey.getText())).setIncludeGridData(false).execute();
 
                     
                     List<Sheet> worksheets = response1.getSheets();
@@ -554,9 +599,10 @@ public class PentahoGoogleSheetsPluginInputDialog extends BaseStepDialog impleme
     private void getData(PentahoGoogleSheetsPluginInputMeta meta) {
         this.wStepname.selectAll();
 
-  
         this.spreadsheetKey.setText(meta.getSpreadsheetKey());
 		this.worksheetId.setText(meta.getWorksheetId());
+		this.privateKeyStore.setText(meta.getJsonCredentialPath());
+        
 		
 
         for ( int i = 0; i < meta.getInputFields().length; i++ ) {
@@ -564,15 +610,6 @@ public class PentahoGoogleSheetsPluginInputDialog extends BaseStepDialog impleme
 
 		  TableItem item = new TableItem( wFields.table, SWT.NONE );
 
-		  /*if ( insertAtTop ) {
-			item = new TableItem( wFields.table, SWT.NONE, i );
-		  } else {
-			if ( i >= wFields.table.getItemCount() ) {
-			  item = wFields.table.getItem( i );
-			} else {
-			  item = new TableItem( wFields.table, SWT.NONE );
-			}
-		  }*/
 
 		  item.setText( 1, Const.NVL( field.getName(), "" ) );
 		  String type = field.getTypeDesc();
@@ -584,10 +621,7 @@ public class PentahoGoogleSheetsPluginInputDialog extends BaseStepDialog impleme
 		  String group = field.getGroupSymbol();
 		  String decim = field.getDecimalSymbol();
 		  String trim = field.getTrimTypeDesc();
-		 /* String rep =
-			  field.isRepeated() ? BaseMessages.getString( PKG, "System.Combo.Yes" ) : BaseMessages.getString( PKG,
-				  "System.Combo.No" );*/
-
+		
 		  if ( type != null ) {
 			item.setText( 2, type );
 		  }
@@ -629,8 +663,10 @@ public class PentahoGoogleSheetsPluginInputDialog extends BaseStepDialog impleme
 
     private void setData(PentahoGoogleSheetsPluginInputMeta meta) {
   
-        meta.setSpreadsheetKey(this.spreadsheetKey.getText());
+        meta.setJsonCredentialPath(this.privateKeyStore.getText());
+		meta.setSpreadsheetKey(this.spreadsheetKey.getText());
         meta.setWorksheetId(this.worksheetId.getText());
+		
 
         int nrNonEmptyFields = wFields.nrNonEmpty();
         meta.allocate(nrNonEmptyFields);
@@ -680,7 +716,7 @@ public class PentahoGoogleSheetsPluginInputDialog extends BaseStepDialog impleme
 			String scope=SheetsScopes.SPREADSHEETS_READONLY;
             wFields.table.removeAll();
 			
-			Sheets service = new Sheets.Builder(HTTP_TRANSPORT, JSON_FACTORY, PentahoGoogleSheetsPluginCredentials.getCredentialsJson(scope)).setApplicationName(APPLICATION_NAME).build();
+			Sheets service = new Sheets.Builder(HTTP_TRANSPORT, JSON_FACTORY, PentahoGoogleSheetsPluginCredentials.getCredentialsJson(scope,transMeta.environmentSubstitute(privateKeyStore.getText()))).setApplicationName(APPLICATION_NAME).build();
 			String range=transMeta.environmentSubstitute(meta.getWorksheetId())+"!"+"1:1";
 			ValueRange result = service.spreadsheets().values().get(transMeta.environmentSubstitute(meta.getSpreadsheetKey()), range).execute();            
 			List<List<Object>> values = result.getValues();
@@ -703,15 +739,5 @@ public class PentahoGoogleSheetsPluginInputDialog extends BaseStepDialog impleme
         }
     }
 
-    private String getPrivateKeyClientID(KeyStore keyStore) {
-        try {
-            X509Certificate cert = (X509Certificate) keyStore.getCertificate("privatekey");
-            String name = cert.getIssuerX500Principal().getName(X500Principal.RFC2253);
-            return name.replaceAll("CN=", "");
-        } catch (Exception e) {
-
-        }
-        return "";
-    }
 
 }

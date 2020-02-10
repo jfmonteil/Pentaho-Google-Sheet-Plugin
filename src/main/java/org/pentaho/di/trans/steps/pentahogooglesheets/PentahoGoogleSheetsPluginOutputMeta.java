@@ -70,7 +70,8 @@ import org.pentaho.di.core.injection.InjectionSupported;
 	name = "PentahoGoogleSheetsPluginOutput.Step.Name", 
 	i18nPackageName = "org.pentaho.di.trans.steps.PentahoGoogleSheetsPluginOutput",
 	description = "PentahoGoogleSheetsPluginOutput.Step.Name", 	
-	categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.Output" 
+	categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.Output",
+	documentationUrl ="https://github.com/jfmonteil/Pentaho-Google-Sheet-Plugin/blob/master/README.md"
 	) 
 	
 @InjectionSupported( localizationPrefix = "PentahoGoogleSheetsPluginOutput.injection.", groups = {"SHEET"} )
@@ -82,7 +83,9 @@ public class PentahoGoogleSheetsPluginOutputMeta extends BaseStepMeta implements
 	  //allocate(0);
     }
 
-
+    @Injection( name = "jsonCrendentialPath", group = "SHEET" )
+    private String jsonCredentialPath;
+ 
 	@Injection( name = "spreadsheetKey", group = "SHEET" )
     private String spreadsheetKey;
     
@@ -92,20 +95,35 @@ public class PentahoGoogleSheetsPluginOutputMeta extends BaseStepMeta implements
 	@Injection( name = "Email", group = "SHEET" )
 	private String shareEmail;
 	
+	@Injection( name = "Domain", group = "SHEET" )
+	private String shareDomain;
+	
 	@Injection( name = "Create", group = "SHEET" )
 	private Boolean create=false; //Last Will retain Mode
 		
     @Override
     public void setDefault() {   
-        this.spreadsheetKey = "";
+        this.jsonCredentialPath = Const.getKettleDirectory() + "/client_secret.json";
+		this.spreadsheetKey = "";
         this.worksheetId = "";  
+		this.shareDomain = "";  
+		this.shareEmail = ""; 
+		this.create=false;
     }
 		
     public String getDialogClassName() {
         return "org.pentaho.di.ui.trans.steps.pentahogooglesheets.PentahoGoogleSheetsPluginOutputDialog";
     }
 	
-    public String getSpreadsheetKey() {
+    public String getJsonCredentialPath() {
+        return this.jsonCredentialPath == null ? "" : this.jsonCredentialPath;
+    }
+
+    public void setJsonCredentialPath(String key) {
+        this.jsonCredentialPath = key;
+    }
+	
+	public String getSpreadsheetKey() {
         return this.spreadsheetKey == null ? "" : this.spreadsheetKey;
     }
 
@@ -119,6 +137,14 @@ public class PentahoGoogleSheetsPluginOutputMeta extends BaseStepMeta implements
 
     public void setShareEmail(String shareEmail) {
         this.shareEmail = shareEmail;
+    }
+	
+	public String getShareDomain() {
+		return this.shareDomain == null ? "" : this.shareDomain;
+    }
+
+    public void setShareDomain(String shareDomain) {
+        this.shareDomain = shareDomain;
     }
 	
 	public Boolean getCreate() {
@@ -140,12 +166,12 @@ public class PentahoGoogleSheetsPluginOutputMeta extends BaseStepMeta implements
     @Override
     public Object clone() {
         PentahoGoogleSheetsPluginOutputMeta retval = (PentahoGoogleSheetsPluginOutputMeta) super.clone();
-   
+        retval.setJsonCredentialPath(this.jsonCredentialPath);
 		retval.setSpreadsheetKey(this.spreadsheetKey);
         retval.setWorksheetId(this.worksheetId);
 		retval.setCreate(this.create);
 		retval.setShareEmail(this.shareEmail);
-	
+	    retval.setShareDomain(this.shareDomain);
         return retval;
     }
 
@@ -153,11 +179,12 @@ public class PentahoGoogleSheetsPluginOutputMeta extends BaseStepMeta implements
     public String getXML() throws KettleException {
         StringBuilder xml = new StringBuilder();
         try {         
-            xml.append(XMLHandler.addTagValue("worksheetId", this.worksheetId));
+            xml.append(XMLHandler.addTagValue("jsonCredentialPath", this.jsonCredentialPath));
+			xml.append(XMLHandler.addTagValue("worksheetId", this.worksheetId));
 			xml.append(XMLHandler.addTagValue("spreadsheetKey", this.spreadsheetKey));
      		xml.append(XMLHandler.addTagValue( "CREATE", Boolean.toString(this.create)));
 			xml.append(XMLHandler.addTagValue("SHAREEMAIL", this.shareEmail));	
-         
+            xml.append(XMLHandler.addTagValue("SHAREDOMAIN", this.shareDomain));
         } catch (Exception e) {
             throw new KettleValueException("Unable to write step to XML", e);
         }
@@ -167,12 +194,12 @@ public class PentahoGoogleSheetsPluginOutputMeta extends BaseStepMeta implements
     @Override
     public void loadXML(Node stepnode, List<DatabaseMeta> databases, IMetaStore metaStore) throws KettleXMLException {
         try {
-           
+            this.jsonCredentialPath = XMLHandler.getTagValue(stepnode, "jsonCredentialPath");
             this.worksheetId = XMLHandler.getTagValue(stepnode, "worksheetId");
             this.spreadsheetKey = XMLHandler.getTagValue(stepnode, "spreadsheetKey");
 			this.create= Boolean.parseBoolean( XMLHandler.getTagValue( stepnode,"CREATE" ));
 			this.shareEmail= XMLHandler.getTagValue(stepnode,"SHAREEMAIL" );
-
+            this.shareDomain= XMLHandler.getTagValue(stepnode,"SHAREDOMAIN" );
 
         } catch (Exception e) {
             throw new KettleXMLException("Unable to load step from XML", e);
@@ -183,9 +210,11 @@ public class PentahoGoogleSheetsPluginOutputMeta extends BaseStepMeta implements
     public void readRep(Repository rep, IMetaStore metaStore, ObjectId id_step, List<DatabaseMeta> databases) throws KettleException {
         try {
 
-            this.worksheetId = rep.getStepAttributeString(id_step, "worksheetId");
+            this.jsonCredentialPath = rep.getStepAttributeString(id_step, "jsonCredentialPath");
+			this.worksheetId = rep.getStepAttributeString(id_step, "worksheetId");
             this.spreadsheetKey = rep.getStepAttributeString(id_step, "spreadsheetKey");
 			this.shareEmail=rep.getStepAttributeString(id_step, "SHAREEMAIL");
+			this.shareDomain=rep.getStepAttributeString(id_step, "SHAREDOMAIN");
 			this.create=Boolean.parseBoolean( rep.getStepAttributeString( id_step, "CREATE" ));
 
        
@@ -197,10 +226,14 @@ public class PentahoGoogleSheetsPluginOutputMeta extends BaseStepMeta implements
     @Override
     public void saveRep(Repository rep, IMetaStore metaStore, ObjectId id_transformation, ObjectId id_step) throws KettleException {
         try {
-            rep.saveStepAttribute(id_transformation, id_step, "spreadsheetKey", this.spreadsheetKey);
+            rep.saveStepAttribute(id_transformation, id_step, "jsonCredentialPath", this.jsonCredentialPath);
+			rep.saveStepAttribute(id_transformation, id_step, "spreadsheetKey", this.spreadsheetKey);
             rep.saveStepAttribute(id_transformation, id_step, "worksheetId", this.worksheetId);
 			if(this.shareEmail!=null){
 			  rep.saveStepAttribute(id_transformation, id_step, "SHAREEMAIL", this.shareEmail);
+			}
+			if(this.shareDomain!=null){
+			  rep.saveStepAttribute(id_transformation, id_step, "SHAREDOMAIN", this.shareDomain);
 			}
             if ( this.create != null ) {
               rep.saveStepAttribute( id_transformation, id_step, "CREATE", this.create );

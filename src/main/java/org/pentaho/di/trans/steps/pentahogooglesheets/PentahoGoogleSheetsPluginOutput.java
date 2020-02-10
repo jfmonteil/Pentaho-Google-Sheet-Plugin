@@ -132,7 +132,7 @@ public class PentahoGoogleSheetsPluginOutput extends BaseStep implements StepInt
                     JSON_FACTORY = JacksonFactory.getDefaultInstance();
                     TOKENS_DIRECTORY_PATH = Const.getKettleDirectory() +"/tokens";   
 					scope="https://www.googleapis.com/auth/drive";
-					Drive service = new Drive.Builder(HTTP_TRANSPORT, JSON_FACTORY, PentahoGoogleSheetsPluginCredentials.getCredentialsJson(scope)).setApplicationName(APPLICATION_NAME).build();
+					Drive service = new Drive.Builder(HTTP_TRANSPORT, JSON_FACTORY, PentahoGoogleSheetsPluginCredentials.getCredentialsJson(scope,environmentSubstitute(meta.getJsonCredentialPath()))).setApplicationName(APPLICATION_NAME).build();
                     String wsID=environmentSubstitute(meta.getSpreadsheetKey());
 					//"properties has { key='id' and value='"+wsID+"'}";
 					String q="mimeType='application/vnd.google-apps.spreadsheet'";
@@ -140,7 +140,7 @@ public class PentahoGoogleSheetsPluginOutput extends BaseStep implements StepInt
                     List<File> spreadsheets = result.getFiles();
 	  					
 					for (File spreadsheet:spreadsheets) {
-                        logBasic(wsID+" VS "+spreadsheet.getId());
+                        //logBasic(wsID+" VS "+spreadsheet.getId());
 						if(wsID.equals(spreadsheet.getId()))
 						{
 							exists=true; //file exists
@@ -155,7 +155,7 @@ public class PentahoGoogleSheetsPluginOutput extends BaseStep implements StepInt
 						//logBasic("SpreadSheet:"+ environmentSubstitute(meta.getSpreadsheetKey())+" does not exist Creating it");
 						 //Init Service
 					    scope="https://www.googleapis.com/auth/spreadsheets";
-					    data.service = new Sheets.Builder(HTTP_TRANSPORT, JSON_FACTORY, PentahoGoogleSheetsPluginCredentials.getCredentialsJson(scope)).setApplicationName(APPLICATION_NAME).build();
+					    data.service = new Sheets.Builder(HTTP_TRANSPORT, JSON_FACTORY, PentahoGoogleSheetsPluginCredentials.getCredentialsJson(scope,environmentSubstitute(meta.getJsonCredentialPath()))).setApplicationName(APPLICATION_NAME).build();
 						
 						//If it does not exist create it.
 						Spreadsheet spreadsheet = new Spreadsheet().setProperties(new SpreadsheetProperties().setTitle(wsID));
@@ -167,16 +167,7 @@ public class PentahoGoogleSheetsPluginOutput extends BaseStep implements StepInt
 						//If it does not exist we use the Worksheet ID to rename 'Sheet ID'
 						if(environmentSubstitute(meta.getWorksheetId())!="Sheet1")
 						{
-    						//logBasic("Sheet:"+ environmentSubstitute(meta.getWorksheetId())+" Renaming Sheet1 title to "+environmentSubstitute(meta.getWorksheetId()));
-
-							//Getting "Sheet" 1 ID
-							/*Spreadsheet response1= data.service.spreadsheets().get(environmentSubstitute(meta.getSpreadsheetKey())).setIncludeGridData(false).execute();          
-                            List<Sheet> worksheets = response1.getSheets();
-							Integer[] workSheetIds = new Integer[worksheets.size()];
-							Sheet sheet = worksheets.get(0);
-						    workSheetIds[0] = sheet.getProperties().getSheetId();
-						    logBasic("Renaming sheet with ID:"	+workSheetIds[0]);	*/			
-							//Renaming "Sheet 1" to user input
+    					
 							SheetProperties title = new SheetProperties().setSheetId(0).setTitle(environmentSubstitute(meta.getWorksheetId()));
 							// make a request with this properties
 							UpdateSheetPropertiesRequest rename = new UpdateSheetPropertiesRequest().setProperties(title);
@@ -191,8 +182,10 @@ public class PentahoGoogleSheetsPluginOutput extends BaseStep implements StepInt
 		                     // now you can execute batchUpdate with your sheetsService and SHEET_ID
 							data.service.spreadsheets().batchUpdate(spreadsheetID, requestBody).execute();
 							//now if share email is not null we share with R/W with the email given
-							if(meta.getShareEmail()!=null)
+							if((environmentSubstitute(meta.getShareEmail())!=null && !environmentSubstitute(meta.getShareEmail()).isEmpty()) || (environmentSubstitute(meta.getShareDomain())!=null && !environmentSubstitute(meta.getShareDomain()).isEmpty()))
 							{
+								
+								
 								String fileId=spreadsheetID;
 								JsonBatchCallback<Permission> callback = new JsonBatchCallback<Permission>() {
 								  @Override
@@ -210,8 +203,10 @@ public class PentahoGoogleSheetsPluginOutput extends BaseStep implements StepInt
 									logBasic("Shared successfully : Permission ID: " + permission.getId());
 								  }
 								};
-								logBasic("Sharing sheet with:"+ environmentSubstitute(meta.getShareEmail()));
 								BatchRequest batch = service.batch();
+								if(environmentSubstitute(meta.getShareEmail())!=null && !environmentSubstitute(meta.getShareEmail()).isEmpty())
+								{
+								logBasic("Sharing sheet with:"+ environmentSubstitute(meta.getShareEmail()));
 								Permission userPermission = new Permission()
 									.setType("user")
 									.setRole("writer")
@@ -220,6 +215,19 @@ public class PentahoGoogleSheetsPluginOutput extends BaseStep implements StepInt
 								service.permissions().create(fileId, userPermission)
 									.setFields("id")
 									.queue(batch, callback);
+								}
+								if(environmentSubstitute(meta.getShareDomain())!=null && !environmentSubstitute(meta.getShareDomain()).isEmpty())
+								{
+									logBasic("Sharing sheet with domain:"+environmentSubstitute(meta.getShareDomain()));
+									Permission domainPermission = new Permission()
+									.setType("domain")
+									.setRole("reader")
+									.setDomain(environmentSubstitute(meta.getShareDomain()));
+								service.permissions().create(fileId, domainPermission)
+									.setFields("id")
+									.queue(batch, callback);
+
+								}
 								batch.execute();
 
 							}
@@ -285,7 +293,7 @@ public class PentahoGoogleSheetsPluginOutput extends BaseStep implements StepInt
 							String APPLICATION_NAME = "pentaho-sheets";
 							String TOKENS_DIRECTORY_PATH = Const.getKettleDirectory() +"/tokens";
 							String scope=SheetsScopes.SPREADSHEETS;
-						    data.service = new Sheets.Builder(HTTP_TRANSPORT, JSON_FACTORY, PentahoGoogleSheetsPluginCredentials.getCredentialsJson(scope)).setApplicationName(APPLICATION_NAME).build();
+						    data.service = new Sheets.Builder(HTTP_TRANSPORT, JSON_FACTORY, PentahoGoogleSheetsPluginCredentials.getCredentialsJson(scope,environmentSubstitute(meta.getJsonCredentialPath()))).setApplicationName(APPLICATION_NAME).build();
                             
 							
 							

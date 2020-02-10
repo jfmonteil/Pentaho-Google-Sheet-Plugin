@@ -68,28 +68,23 @@ import java.io.FileInputStream;
  */
 public class PentahoGoogleSheetsPluginCredentials {	
     
-	// Generate a service account and P12 key:
-	// https://developers.google.com/identity/protocols/OAuth2ServiceAccount
-	//private final String CLIENT_ID = "<your service account email address>";
-	// Add requested scopes.
-	// The name of the p12 file you created when obtaining the service account
-	//private final String P12FILE = "/<your p12 file name>.p12";
+
 
 	
-	public static Credential getCredentialsJson(String scope) throws IOException {
+	public static Credential getCredentialsJson(String scope,String jsonCredentialPath) throws IOException {
             
 			Credential credential=null;
 	        //InputStream in = PentahoGoogleSheetsPluginCredentials.class.getResourceAsStream("/plugins/pentaho-googledrive-vfs/credentials/client_secret.json");//pentaho-sheets-261911-18ce0057e3d3.json
             //logBasic("Getting credential json file from :"+Const.getKettleDirectory());
             InputStream in=null;
 			try{
-		       in = KettleVFS.getInputStream( Const.getKettleDirectory() + "/client_secret.json");
+		       in = KettleVFS.getInputStream(jsonCredentialPath);//Const.getKettleDirectory() + "/client_secret.json");
 			}  catch (Exception e) {
 			//throw new KettleFileException("Exception",e.getMessage(),e);
 		    }
 			
 			if (in == null) {
-               throw new FileNotFoundException("Resource not found:"+ Const.getKettleDirectory() + "/client_secret.json");			   
+               throw new FileNotFoundException("Resource not found:"+ jsonCredentialPath);			   
             }
 			credential = GoogleCredential.fromStream(in).createScoped(Collections.singleton(scope));
             return credential;
