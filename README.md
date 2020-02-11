@@ -1,4 +1,3 @@
-
 # Pentaho Google Spreadsheet Plugin (Google Sheet API V4 / Google Drive API V3)
 
 Jean-François Monteil
@@ -18,32 +17,37 @@ Google Tokens will also be create in *.kettle* directory */tokens*
 The service account should be parameterized with both Google Drive and Google Spreadsheet  API’s read and write access
 
 ## Input step
-### Credential Tab
+### Service Account Tab
 Lets you pick your google service account client secret json file.
 Test button Lets you test your access to the API.
-On success you should see a success message
+On success you should see a success message.
+![Service Account](https://github.com/jfmonteil/Pentaho-Google-Sheet-Plugin/blob/master/screenshots/PentahoGoogleSheetInput-Credential.png?raw=true)
+
 
 ### Spreadsheet tab
 Let’s you specify or browse for spreadsheets existing in the service account drive or for the ones that are shared with the service account email.
+![enter image description here](https://raw.githubusercontent.com/jfmonteil/Pentaho-Google-Sheet-Plugin/master/screenshots/PentahoGoogleSheetInput-Spreadsheet.png)
+
 
 ### Fields tab
 Lets you select from the fields of the sheet.
 Fields name are always defined in the first line of the google spreadsheet.
 Note that they are all types as String for the moment.
 Input fields are mandatory.
+![enter image description here](https://raw.githubusercontent.com/jfmonteil/Pentaho-Google-Sheet-Plugin/master/screenshots/PentahoGoogleSheetInput-Fields.png)
 
 ## Output step
 Lets you write data into a sheet (existing or not)
 
-### Credential Tab
+### Service Account Tab
 Lets you pick your google service account client secret json file.
-Lets  you test your access to the APIOn success you should see the following screen
+Lets  you test your access to the API. On success you should see the following screen
 
 ### Spreadsheet tab
 
 * Spreadsheet key : 
 Lets you specify or browse for spreadsheets existing in the service account drive or for the ones that are shared with the service account email.
-if you type in a sheet name (that does not exist in the drive) it will attempt to create a sheet it the "create" checkbox is ticked.
+If you type in a sheet name (that does not exist in the drive) it will attempt to create a sheet it the "create" checkbox is ticked.
 * Worksheet Id : Should be browsed form the selected spreadsheet key. If you want to create a new file, type in any key that will become the name of the worksheet in the created spreadsheet
 
 * Create sheet if it does not exist checkbox : 
@@ -51,18 +55,16 @@ If the checkbox is checked then if the Spreadsheet Key spécified in the field S
 
 * Share with email : 
 That is why the Share with user email field let’s you specify the email of a user who will get full rights on the freshly created file.
-
-* Domain Wise permission :
-If configured for your company Google Drive, it allows to share the file with a whole domain e.g. * hitachivantara.com * (Read only for the moment)
+![enter image description here](https://raw.githubusercontent.com/jfmonteil/Pentaho-Google-Sheet-Plugin/master/screenshots/PentahoGoogleSheetOut-Spreadsheet.png)
 
 All steps inbound fields are written in the output file
 
 ## Metadata injection.
-Both steps fully support metadata injection
+Both steps fully support *metadata injection* and *parameters*
 See mi-input-output transformations in the sample repository.
+![enter image description here](https://raw.githubusercontent.com/jfmonteil/Pentaho-Google-Sheet-Plugin/master/screenshots/PentahoGoogleSheetOut-Spreadsheet_Variable.png)
 
  
-
 
 
 > Written with [StackEdit](https://stackedit.io/).
