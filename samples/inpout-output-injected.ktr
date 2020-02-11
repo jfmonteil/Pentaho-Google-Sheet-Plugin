@@ -9,6 +9,11 @@
     <trans_status>0</trans_status>
     <directory>/</directory>
     <parameters>
+      <parameter>
+        <name>sheet</name>
+        <default_value>1mDcSKwt7MnPv5sEdB5GBV4L2t06JdXGSAnxbdaO1rWE</default_value>
+        <description/>
+      </parameter>
     </parameters>
     <log>
       <trans-log-table>
@@ -456,6 +461,7 @@
     </partitioning>
     <worksheetId>Sheet1</worksheetId>
     <spreadsheetKey>1mDcSKwt7MnPv5sEdB5GBV4L2t06JdXGSAnxbdaO1rWE</spreadsheetKey>
+    <jsonCredentialPath>C:\Users\jmonteil\.kettle/client_secret.json</jsonCredentialPath>
     <fields>
       <field>
         <name>Date Acte</name>
@@ -611,181 +617,8 @@
       </output>
     </remotesteps>
     <GUI>
-      <xloc>272</xloc>
-      <yloc>208</yloc>
-      <draw>Y</draw>
-    </GUI>
-  </step>
-  <step>
-    <name>Pentaho Google Sheets Input 2</name>
-    <type>PentahoGoogleSheetsPluginInputMeta</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
-    <worksheetId>Sheet1</worksheetId>
-    <spreadsheetKey>1Sk1Xv-T1oB7tTdkQ33ula3tIXF0KPsVgccGyTU6dh2M</spreadsheetKey>
-    <fields>
-      <field>
-        <name>Date Acte</name>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <position>-1</position>
-        <length>-1</length>
-        <precision>-1</precision>
-        <trim_type>none</trim_type>
-      </field>
-      <field>
-        <name>Acte</name>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <position>-1</position>
-        <length>-1</length>
-        <precision>-1</precision>
-        <trim_type>none</trim_type>
-      </field>
-      <field>
-        <name>Acquité</name>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <position>-1</position>
-        <length>-1</length>
-        <precision>-1</precision>
-        <trim_type>none</trim_type>
-      </field>
-      <field>
-        <name>Date Remboursement CPAM</name>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <position>-1</position>
-        <length>-1</length>
-        <precision>-1</precision>
-        <trim_type>none</trim_type>
-      </field>
-      <field>
-        <name>Montant CPAM</name>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <position>-1</position>
-        <length>-1</length>
-        <precision>-1</precision>
-        <trim_type>none</trim_type>
-      </field>
-      <field>
-        <name>Date Vivinter</name>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <position>-1</position>
-        <length>-1</length>
-        <precision>-1</precision>
-        <trim_type>none</trim_type>
-      </field>
-      <field>
-        <name>Montant Viventer</name>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <position>-1</position>
-        <length>-1</length>
-        <precision>-1</precision>
-        <trim_type>none</trim_type>
-      </field>
-      <field>
-        <name>Reste à charge</name>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <position>-1</position>
-        <length>-1</length>
-        <precision>-1</precision>
-        <trim_type>none</trim_type>
-      </field>
-      <field>
-        <name>Dans le devis ?</name>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <position>-1</position>
-        <length>-1</length>
-        <precision>-1</precision>
-        <trim_type>none</trim_type>
-      </field>
-      <field>
-        <name>Total payé</name>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <position>-1</position>
-        <length>-1</length>
-        <precision>-1</precision>
-        <trim_type>none</trim_type>
-      </field>
-      <field>
-        <name>Total remboursé</name>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <position>-1</position>
-        <length>-1</length>
-        <precision>-1</precision>
-        <trim_type>none</trim_type>
-      </field>
-      <field>
-        <name>RAC</name>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <position>-1</position>
-        <length>-1</length>
-        <precision>-1</precision>
-        <trim_type>none</trim_type>
-      </field>
-    </fields>
-    <attributes/>
-    <cluster_schema/>
-    <remotesteps>
-      <input>
-      </input>
-      <output>
-      </output>
-    </remotesteps>
-    <GUI>
-      <xloc>256</xloc>
-      <yloc>336</yloc>
+      <xloc>320</xloc>
+      <yloc>176</yloc>
       <draw>Y</draw>
     </GUI>
   </step>
@@ -800,10 +633,12 @@
       <method>none</method>
       <schema_name/>
     </partitioning>
-    <worksheetId>Sheet1</worksheetId>
-    <spreadsheetKey>1Sk1Xv-T1oB7tTdkQ33ula3tIXF0KPsVgccGyTU6dh2M</spreadsheetKey>
-    <CREATE>true</CREATE>
-    <SHAREEMAIL>jfmonteil@gmail.com</SHAREEMAIL>
+    <jsonCredentialPath>C:\Users\jmonteil\.kettle/client_secret.json</jsonCredentialPath>
+    <worksheetId>fonk</worksheetId>
+    <spreadsheetKey>1mDcSKwt7MnPv5sEdB5GBV4L2t06JdXGSAnxbdaO1rWE</spreadsheetKey>
+    <CREATE>false</CREATE>
+    <SHAREEMAIL/>
+    <SHAREDOMAIN/>
     <attributes/>
     <cluster_schema/>
     <remotesteps>
@@ -813,8 +648,8 @@
       </output>
     </remotesteps>
     <GUI>
-      <xloc>656</xloc>
-      <yloc>208</yloc>
+      <xloc>576</xloc>
+      <yloc>176</yloc>
       <draw>Y</draw>
     </GUI>
   </step>

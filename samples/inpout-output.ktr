@@ -456,6 +456,7 @@
     </partitioning>
     <worksheetId>sheet inside</worksheetId>
     <spreadsheetKey>1_uhwve0AEyR_t1aYROyBT2d9Rhmn9TWXwMqAhi8Bx3E</spreadsheetKey>
+    <jsonCredentialPath>C:\Users\jmonteil\.kettle\client_secret.json</jsonCredentialPath>
     <fields>
       <field>
         <name>Date Acte</name>
@@ -507,10 +508,12 @@
       <method>none</method>
       <schema_name/>
     </partitioning>
+    <jsonCredentialPath>C:\Users\jmonteil\.kettle\client_secret.json</jsonCredentialPath>
     <worksheetId>sheet inside</worksheetId>
     <spreadsheetKey>1_uhwve0AEyR_t1aYROyBT2d9Rhmn9TWXwMqAhi8Bx3E</spreadsheetKey>
     <CREATE>true</CREATE>
     <SHAREEMAIL>jfmonteil@gmail.com</SHAREEMAIL>
+    <SHAREDOMAIN/>
     <attributes/>
     <cluster_schema/>
     <remotesteps>

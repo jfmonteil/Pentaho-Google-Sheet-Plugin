@@ -52,6 +52,9 @@ If the checkbox is checked then if the Spreadsheet Key spécified in the field S
 * Share with email : 
 That is why the Share with user email field let’s you specify the email of a user who will get full rights on the freshly created file.
 
+* Domain Wise permission :
+If configured for your company Google Drive, it allows to share the file with a whole domain e.g. * hitachivantara.com * (Read only for the moment)
+
 All steps inbound fields are written in the output file
 
 ## Metadata injection.
