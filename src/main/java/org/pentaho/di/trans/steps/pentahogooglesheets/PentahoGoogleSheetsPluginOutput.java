@@ -50,12 +50,15 @@ import com.google.api.services.sheets.v4.model.Spreadsheet;
 import com.google.api.services.sheets.v4.SheetsScopes;
 import com.google.api.services.sheets.v4.model.SpreadsheetProperties;
 import com.google.api.services.sheets.v4.model.UpdateValuesResponse;
+import com.google.api.services.sheets.v4.model.AppendValuesResponse;
 import com.google.api.services.sheets.v4.model.ClearValuesResponse;
 import com.google.api.services.sheets.v4.model.ClearValuesRequest;
 import com.google.api.services.sheets.v4.model.UpdateSheetPropertiesRequest;
 import com.google.api.services.sheets.v4.model.BatchUpdateSpreadsheetRequest;
 import com.google.api.services.sheets.v4.model.Request;
 import com.google.api.services.sheets.v4.model.SheetProperties;
+
+
 
 
 import com.google.api.services.drive.Drive;
@@ -152,7 +155,7 @@ public class PentahoGoogleSheetsPluginOutput extends BaseStep implements StepInt
 					//logBasic("Create if Not exist is :"+meta.getCreate());
 					if(!exists && meta.getCreate())
 					{						
-						//logBasic("SpreadSheet:"+ environmentSubstitute(meta.getSpreadsheetKey())+" does not exist Creating it");
+						if(!meta.getAppend()){ //si append + create alors erreur
 						 //Init Service
 					    scope="https://www.googleapis.com/auth/spreadsheets";
 					    data.service = new Sheets.Builder(HTTP_TRANSPORT, JSON_FACTORY, PentahoGoogleSheetsPluginCredentials.getCredentialsJson(scope,environmentSubstitute(meta.getJsonCredentialPath()))).setApplicationName(APPLICATION_NAME).build();
@@ -233,7 +236,13 @@ public class PentahoGoogleSheetsPluginOutput extends BaseStep implements StepInt
 							}
 						
 						}
+					  } else {
+					    	logError("Append and Create options cannot be activated alltogether");
+					    	return false;
+					  }
+					
 					}
+					
 					if(!exists && !meta.getCreate())
 					{
 						logError("File does not Exist");
@@ -265,53 +274,79 @@ public class PentahoGoogleSheetsPluginOutput extends BaseStep implements StepInt
 	
     if (first && row!=null) {
 		first = false;
-		logBasic("Writing header");
+		
 		data.outputRowMeta=getInputRowMeta().clone();
 		meta.getFields(data.outputRowMeta, getStepname(), null, null, this, repository, metaStore);	
 		data.rows =  new ArrayList<List<Object>>();
-		r= new ArrayList<Object>();
-
-		for (int i = 0; i < data.outputRowMeta.size(); i++) {
-			ValueMetaInterface v = data.outputRowMeta.getValueMeta(i);
-			r.add(v.getName());			
+		if(meta.getAppend()){ //If append is checked we do not write the header
+		   logBasic("Appending lines so skipping the header");
+		   data.currentRow++;	
+		} else {
+			logBasic("Writing header");
+			r= new ArrayList<Object>();
+			for (int i = 0; i < data.outputRowMeta.size(); i++) {
+				ValueMetaInterface v = data.outputRowMeta.getValueMeta(i);
+				r.add(v.getName());			
+			}
+			data.rows.add(r);
+			data.currentRow++;	
 		}
-		data.rows.add(r);
-	    data.currentRow++;	
 		
 	} else {
 		try {
-				//Object[] outputRowData = getRow();
-				if (row == null) {
-					        if(data.currentRow>0){													
-							ClearValuesRequest requestBody = new ClearValuesRequest();							
-							String range=environmentSubstitute(meta.getWorksheetId());
+				//if last row is reached
+				if (row == null) { 
+					        if(data.currentRow>0)
+							{													
+								ClearValuesRequest requestBody = new ClearValuesRequest();							
+								String range=environmentSubstitute(meta.getWorksheetId());
 
-							logBasic("Clearing range" +range +" in Spreadsheet :"+ environmentSubstitute(meta.getSpreadsheetKey()));
-                            //Creating service
-                            NetHttpTransport HTTP_TRANSPORT=GoogleNetHttpTransport.newTrustedTransport();
-                            JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
-							String APPLICATION_NAME = "pentaho-sheets";
-							String TOKENS_DIRECTORY_PATH = Const.getKettleDirectory() +"/tokens";
-							String scope=SheetsScopes.SPREADSHEETS;
-						    data.service = new Sheets.Builder(HTTP_TRANSPORT, JSON_FACTORY, PentahoGoogleSheetsPluginCredentials.getCredentialsJson(scope,environmentSubstitute(meta.getJsonCredentialPath()))).setApplicationName(APPLICATION_NAME).build();
-                            
-							
-							
-							Sheets.Spreadsheets.Values.Clear request = data.service.spreadsheets().values().clear(environmentSubstitute(meta.getSpreadsheetKey()), range, requestBody);
-                            logBasic("Clearing Sheet:" +range +"in Spreadsheet :"+ environmentSubstitute(meta.getSpreadsheetKey()));
-							if(request!=null){
-							ClearValuesResponse response = request.execute();
-							} else logBasic("Nothing to clear");
-							
-							logBasic("Writing to Sheet");
-							ValueRange body = new ValueRange().setValues(data.rows);
-							String valueInputOption="USER_ENTERED";
-		                    UpdateValuesResponse result = data.service.spreadsheets().values().update(environmentSubstitute(meta.getSpreadsheetKey()), range, body).setValueInputOption(valueInputOption).execute();
-							}
-							else 
-							{
-								logBasic("No data found");
-							}
+								logBasic("Clearing range" +range +" in Spreadsheet :"+ environmentSubstitute(meta.getSpreadsheetKey()));
+								//Creating service
+								NetHttpTransport HTTP_TRANSPORT=GoogleNetHttpTransport.newTrustedTransport();
+								JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
+								String APPLICATION_NAME = "pentaho-sheets";
+								String TOKENS_DIRECTORY_PATH = Const.getKettleDirectory() +"/tokens";
+								String scope=SheetsScopes.SPREADSHEETS;
+								data.service = new Sheets.Builder(HTTP_TRANSPORT, JSON_FACTORY, PentahoGoogleSheetsPluginCredentials.getCredentialsJson(scope,environmentSubstitute(meta.getJsonCredentialPath()))).setApplicationName(APPLICATION_NAME).build();
+								
+								
+								if(!meta.getAppend()) //if Append is not checked we clear the sheet and we write content
+								{
+									//Clearing exsiting Sheet
+									Sheets.Spreadsheets.Values.Clear request = data.service.spreadsheets().values().clear(environmentSubstitute(meta.getSpreadsheetKey()), range, requestBody);
+									logBasic("Clearing Sheet:" +range +"in Spreadsheet :"+ environmentSubstitute(meta.getSpreadsheetKey()));
+									if(request!=null){
+									ClearValuesResponse response = request.execute();
+									} else logBasic("Nothing to clear");
+									//Writing Sheet
+									logBasic("Writing to Sheet");
+									ValueRange body = new ValueRange().setValues(data.rows);
+									String valueInputOption="USER_ENTERED";
+									UpdateValuesResponse result = data.service.spreadsheets().values().update(environmentSubstitute(meta.getSpreadsheetKey()), range, body).setValueInputOption(valueInputOption).execute();								
+								
+								} else { //Appending if option is checked
+
+									// How the input data should be interpreted.
+									String valueInputOption = "USER_ENTERED"; // TODO: Update placeholder value.
+
+									// How the input data should be inserted.
+									String insertDataOption = "INSERT_ROWS"; // TODO: Update placeholder value.
+
+									// TODO: Assign values to desired fields of `requestBody`:
+									ValueRange body = new ValueRange().setValues(data.rows);
+									logBasic("Appending data :" +range +"in Spreadsheet :"+ environmentSubstitute(meta.getSpreadsheetKey()));
+
+									Sheets.Spreadsheets.Values.Append request =data.service.spreadsheets().values().append(environmentSubstitute(meta.getSpreadsheetKey()), range, body);
+									request.setValueInputOption(valueInputOption);
+									request.setInsertDataOption(insertDataOption);
+									AppendValuesResponse response = request.execute();
+
+								}
+							} else 
+								{
+									logBasic("No data found");
+								}							
 					setOutputDone();
 					return false;
 				} else {

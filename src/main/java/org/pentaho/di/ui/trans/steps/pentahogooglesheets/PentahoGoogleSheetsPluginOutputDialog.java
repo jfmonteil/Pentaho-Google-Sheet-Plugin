@@ -97,6 +97,7 @@ public class PentahoGoogleSheetsPluginOutputDialog extends BaseStepDialog implem
     private TextVar shareEmail;
 	private TextVar shareDomain;
     private Button create;
+	private Button append;
 	
     public PentahoGoogleSheetsPluginOutputDialog(Shell parent, Object in, TransMeta transMeta, String name) {
         super(parent, (BaseStepMeta) in, transMeta, name);
@@ -309,12 +310,32 @@ public class PentahoGoogleSheetsPluginOutputDialog extends BaseStepDialog implem
         worksheetIdData.right = new FormAttachment(worksheetIdButton, -margin);
         worksheetId.setLayoutData(worksheetIdData);
 				
+		//Append tick box label
+		Label wlAppend=new Label( spreadsheetComposite, SWT.RIGHT );
+		wlAppend.setText(BaseMessages.getString(PKG, "PentahoGoogleSheetsPluginOutputDialog.Append.Label" ));
+		props.setLook( wlAppend );
+		FormData fdAppend = new FormData();
+		fdAppend.top = new FormAttachment( worksheetIdButton, margin );
+		fdAppend.left = new FormAttachment( 0, 0 );
+		fdAppend.right = new FormAttachment( middle, -margin );
+		wlAppend.setLayoutData( fdAppend );
+		
+		//Append tick box button
+		append = new Button( spreadsheetComposite, SWT.CHECK );
+		props.setLook( append );
+	    append.addSelectionListener(lsSa);
+		fdAppend = new FormData();
+		fdAppend.top = new FormAttachment( worksheetIdButton, margin );
+		fdAppend.left = new FormAttachment( middle, 0 );
+		fdAppend.right = new FormAttachment( 100, 0 );
+		append.setLayoutData( fdAppend );
+		
 		//Create New Sheet tick box label
 		Label wlCreate=new Label( spreadsheetComposite, SWT.RIGHT );
 		wlCreate.setText(BaseMessages.getString(PKG, "PentahoGoogleSheetsPluginOutputDialog.Create.Label" ));
 		props.setLook( wlCreate );
 		FormData fdCreate = new FormData();
-		fdCreate.top = new FormAttachment( worksheetIdButton, margin );
+		fdCreate.top = new FormAttachment( append, margin );
 		fdCreate.left = new FormAttachment( 0, 0 );
 		fdCreate.right = new FormAttachment( middle, -margin );
 		wlCreate.setLayoutData( fdCreate );
@@ -324,7 +345,7 @@ public class PentahoGoogleSheetsPluginOutputDialog extends BaseStepDialog implem
 		props.setLook( create );
 	    create.addSelectionListener(lsSa);
 		fdCreate = new FormData();
-		fdCreate.top = new FormAttachment( worksheetIdButton, margin );
+		fdCreate.top = new FormAttachment( append, margin );
 		fdCreate.left = new FormAttachment( middle, 0 );
 		fdCreate.right = new FormAttachment( 100, 0 );
 		create.setLayoutData( fdCreate );
@@ -580,6 +601,8 @@ public class PentahoGoogleSheetsPluginOutputDialog extends BaseStepDialog implem
 		this.worksheetId.setText(meta.getWorksheetId());
 		this.shareEmail.setText(meta.getShareEmail());
 		this.create.setSelection( meta.getCreate() );
+		this.append.setSelection( meta.getAppend() );
+
         this.shareDomain.setText(meta.getShareDomain());
 		this.privateKeyStore.setText(meta.getJsonCredentialPath());
        
@@ -593,6 +616,7 @@ public class PentahoGoogleSheetsPluginOutputDialog extends BaseStepDialog implem
         meta.setWorksheetId(this.worksheetId.getText());
 		meta.setShareEmail(this.shareEmail.getText());
 		meta.setCreate(this.create.getSelection());
+		meta.setAppend(this.append.getSelection());
         meta.setShareDomain(this.shareDomain.getText());
 
     }

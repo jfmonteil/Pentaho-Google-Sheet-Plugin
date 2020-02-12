@@ -100,6 +100,9 @@ public class PentahoGoogleSheetsPluginOutputMeta extends BaseStepMeta implements
 	
 	@Injection( name = "Create", group = "SHEET" )
 	private Boolean create=false; //Last Will retain Mode
+	
+    @Injection( name = "Append", group = "SHEET" )
+	private Boolean append=false; //Last Will retain Mode
 		
     @Override
     public void setDefault() {   
@@ -109,6 +112,7 @@ public class PentahoGoogleSheetsPluginOutputMeta extends BaseStepMeta implements
 		this.shareDomain = "";  
 		this.shareEmail = ""; 
 		this.create=false;
+		this.append=false;
     }
 		
     public String getDialogClassName() {
@@ -155,6 +159,14 @@ public class PentahoGoogleSheetsPluginOutputMeta extends BaseStepMeta implements
         this.create = create;
     }
 
+    public void setAppend(Boolean append) {
+        this.append = append;
+    }
+	
+	public Boolean getAppend() {
+        return this.create == null ? false : this.create;
+    }
+
     public String getWorksheetId() {
         return this.worksheetId == null ? "" : this.worksheetId;
     }
@@ -170,6 +182,7 @@ public class PentahoGoogleSheetsPluginOutputMeta extends BaseStepMeta implements
 		retval.setSpreadsheetKey(this.spreadsheetKey);
         retval.setWorksheetId(this.worksheetId);
 		retval.setCreate(this.create);
+		retval.setAppend(this.append);
 		retval.setShareEmail(this.shareEmail);
 	    retval.setShareDomain(this.shareDomain);
         return retval;
@@ -183,6 +196,7 @@ public class PentahoGoogleSheetsPluginOutputMeta extends BaseStepMeta implements
 			xml.append(XMLHandler.addTagValue("worksheetId", this.worksheetId));
 			xml.append(XMLHandler.addTagValue("spreadsheetKey", this.spreadsheetKey));
      		xml.append(XMLHandler.addTagValue( "CREATE", Boolean.toString(this.create)));
+            xml.append(XMLHandler.addTagValue( "APPEND", Boolean.toString(this.append)));
 			xml.append(XMLHandler.addTagValue("SHAREEMAIL", this.shareEmail));	
             xml.append(XMLHandler.addTagValue("SHAREDOMAIN", this.shareDomain));
         } catch (Exception e) {
@@ -198,6 +212,7 @@ public class PentahoGoogleSheetsPluginOutputMeta extends BaseStepMeta implements
             this.worksheetId = XMLHandler.getTagValue(stepnode, "worksheetId");
             this.spreadsheetKey = XMLHandler.getTagValue(stepnode, "spreadsheetKey");
 			this.create= Boolean.parseBoolean( XMLHandler.getTagValue( stepnode,"CREATE" ));
+			this.append= Boolean.parseBoolean( XMLHandler.getTagValue( stepnode,"APPEND" ));
 			this.shareEmail= XMLHandler.getTagValue(stepnode,"SHAREEMAIL" );
             this.shareDomain= XMLHandler.getTagValue(stepnode,"SHAREDOMAIN" );
 
@@ -216,6 +231,7 @@ public class PentahoGoogleSheetsPluginOutputMeta extends BaseStepMeta implements
 			this.shareEmail=rep.getStepAttributeString(id_step, "SHAREEMAIL");
 			this.shareDomain=rep.getStepAttributeString(id_step, "SHAREDOMAIN");
 			this.create=Boolean.parseBoolean( rep.getStepAttributeString( id_step, "CREATE" ));
+			this.append=Boolean.parseBoolean( rep.getStepAttributeString( id_step, "APPEND" ));
 
        
         } catch (Exception e) {
@@ -237,6 +253,9 @@ public class PentahoGoogleSheetsPluginOutputMeta extends BaseStepMeta implements
 			}
             if ( this.create != null ) {
               rep.saveStepAttribute( id_transformation, id_step, "CREATE", this.create );
+			}
+			if ( this.append != null ) {
+              rep.saveStepAttribute( id_transformation, id_step, "APPEND", this.create );
 			}
         } catch (Exception e) {
             throw new KettleException("Unable to save step information to the repository for id_step=" + id_step, e);

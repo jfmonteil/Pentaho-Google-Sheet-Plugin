@@ -50,6 +50,9 @@ Lets you specify or browse for spreadsheets existing in the service account driv
 If you type in a sheet name (that does not exist in the drive) it will attempt to create a sheet it the "create" checkbox is ticked.
 * Worksheet Id : Should be browsed form the selected spreadsheet key. If you want to create a new file, type in any key that will become the name of the worksheet in the created spreadsheet
 
+* Append checkbox : 
+Appends the lines **without the header** to an existing spreadsheet. This is incompatible with the *create* option below.
+
 * Create sheet if it does not exist checkbox : 
 If the checkbox is checked then if the Spreadsheet Key spécified in the field Spreadsheet key does not exist it will create a new spreadsheet within the service account drive (note that this account has no UI)
 
@@ -63,8 +66,6 @@ All steps inbound fields are written in the output file
 Both steps fully support *metadata injection* and *parameters*
 See mi-input-output transformations in the sample repository.
 ![enter image description here](https://raw.githubusercontent.com/jfmonteil/Pentaho-Google-Sheet-Plugin/master/screenshots/PentahoGoogleSheetOut-Spreadsheet_Variable.png)
-
- 
 
 
 > Written with [StackEdit](https://stackedit.io/).

@@ -510,8 +510,9 @@
     </partitioning>
     <jsonCredentialPath>C:\Users\jmonteil\.kettle\client_secret.json</jsonCredentialPath>
     <worksheetId>sheet inside</worksheetId>
-    <spreadsheetKey>1_uhwve0AEyR_t1aYROyBT2d9Rhmn9TWXwMqAhi8Bx3E</spreadsheetKey>
+    <spreadsheetKey>1td1yBSzRI1e8FtNVe85bPA9ZTebZe7kY1SDywP7won4</spreadsheetKey>
     <CREATE>true</CREATE>
+    <APPEND>true</APPEND>
     <SHAREEMAIL>jfmonteil@gmail.com</SHAREEMAIL>
     <SHAREDOMAIN/>
     <attributes/>
