@@ -1,3 +1,4 @@
+
 # Pentaho Google Spreadsheet Plugin (Google Sheet API V4 / Google Drive API V3)
 
 Jean-François Monteil
@@ -38,6 +39,7 @@ Input fields are mandatory.
 
 ## Output step
 Lets you write data into a sheet (existing or not)
+**IMPORTANT NOTE** : The API writes data in a "user entered mode" as if you were typing in the cells. That means the cells are interpreted by google after insert. I noticed that it is better to transmit STRINGS to the step so Google Sheets works well, specially numbers. Use *Select Value* step for this
 
 ### Service Account Tab
 Lets you pick your google service account client secret json file.
@@ -54,10 +56,15 @@ If you type in a sheet name (that does not exist in the drive) it will attempt t
 Appends the lines **without the header** to an existing spreadsheet. This is incompatible with the *create* option below.
 
 * Create sheet if it does not exist checkbox : 
-If the checkbox is checked then if the Spreadsheet Key spécified in the field Spreadsheet key does not exist it will create a new spreadsheet within the service account drive (note that this account has no UI)
+If the checkbox is checked then if the Spreadsheet Key specified in the field Spreadsheet key does not exist it will create a new spreadsheet within the service account drive (note that this account has no UI)
 
 * Share with email : 
 That is why the Share with user email field let’s you specify the email of a user who will get full rights on the freshly created file.
+
+* Domain Wise Permission : 
+Enables to share with your whole domain (if configured in Google Drive). For security concerns I share only with READ rights.
+
+
 ![enter image description here](https://raw.githubusercontent.com/jfmonteil/Pentaho-Google-Sheet-Plugin/master/screenshots/PentahoGoogleSheetOut-Spreadsheet.png)
 
 All steps inbound fields are written in the output file
