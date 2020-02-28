@@ -28,7 +28,6 @@ import org.pentaho.di.core.exception.KettleValueException;
 import org.pentaho.di.core.exception.KettleXMLException;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.ValueMetaInterface;
-import org.pentaho.di.core.row.ValueMeta;
 import org.pentaho.di.core.row.value.ValueMetaFactory;
 import org.pentaho.di.core.row.value.ValueMetaInteger;
 import org.pentaho.di.core.row.value.ValueMetaString;
@@ -41,15 +40,15 @@ import org.pentaho.di.repository.Repository;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.BaseStepMeta;
-import org.pentaho.di.trans.step.StepInterface;
 import org.pentaho.di.trans.step.StepMeta;
+import org.pentaho.di.trans.step.StepInterface;
 import org.pentaho.di.trans.step.StepMetaInterface;
 import org.pentaho.di.trans.step.StepDataInterface;
 import org.pentaho.metastore.api.IMetaStore;
-import org.w3c.dom.Node;
 import org.pentaho.di.trans.steps.csvinput.CsvInputMeta;
-import org.pentaho.di.trans.steps.textfileinput.TextFileInputField;
 import org.pentaho.di.trans.steps.file.BaseFileField;
+
+import org.w3c.dom.Node;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -115,9 +114,9 @@ public class PentahoGoogleSheetsPluginOutputMeta extends BaseStepMeta implements
 		this.append=false;
     }
 		
-    public String getDialogClassName() {
+   /* public String getDialogClassName() {
         return "org.pentaho.di.ui.trans.steps.pentahogooglesheets.PentahoGoogleSheetsPluginOutputDialog";
-    }
+    }*/
 	
     public String getJsonCredentialPath() {
         return this.jsonCredentialPath == null ? "" : this.jsonCredentialPath;

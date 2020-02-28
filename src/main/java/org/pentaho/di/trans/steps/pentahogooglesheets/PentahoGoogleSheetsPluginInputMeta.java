@@ -28,7 +28,6 @@ import org.pentaho.di.core.exception.KettleValueException;
 import org.pentaho.di.core.exception.KettleXMLException;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.ValueMetaInterface;
-import org.pentaho.di.core.row.ValueMeta;
 import org.pentaho.di.core.row.value.ValueMetaFactory;
 import org.pentaho.di.core.row.value.ValueMetaInteger;
 import org.pentaho.di.core.row.value.ValueMetaString;
@@ -48,8 +47,10 @@ import org.pentaho.di.trans.step.StepDataInterface;
 import org.pentaho.metastore.api.IMetaStore;
 import org.w3c.dom.Node;
 import org.pentaho.di.trans.steps.csvinput.CsvInputMeta;
-import org.pentaho.di.trans.steps.textfileinput.TextFileInputField;
 import org.pentaho.di.trans.steps.file.BaseFileField;
+
+import org.pentaho.di.trans.steps.pentahogooglesheets.PentahoGoogleSheetsPluginInputFields;
+
 
 import java.util.ArrayList;
 import java.util.List;
@@ -92,7 +93,7 @@ public class PentahoGoogleSheetsPluginInputMeta extends BaseStepMeta implements 
 	private String worksheetId;
 	
 	@InjectionDeep
-	private TextFileInputField[] inputFields;
+	private PentahoGoogleSheetsPluginInputFields[] inputFields;
 	
     @Override
     public void setDefault() {   
@@ -110,11 +111,11 @@ public class PentahoGoogleSheetsPluginInputMeta extends BaseStepMeta implements 
         this.jsonCredentialPath = key;
     }
 		
-    public String getDialogClassName() {
+  /*  public String getDialogClassName() {
         return "org.pentaho.di.ui.trans.steps.pentahogooglesheets.PentahoGoogleSheetsPluginInputDialog";
-    }
+    }*/
 	
-	public TextFileInputField[] getInputFields() {
+	public PentahoGoogleSheetsPluginInputFields[] getInputFields() {
 		return inputFields;
 	}
 
@@ -139,7 +140,7 @@ public class PentahoGoogleSheetsPluginInputMeta extends BaseStepMeta implements 
   
 	
   public void allocate(int nrfields) {
-    inputFields = new TextFileInputField[nrfields];
+    inputFields = new PentahoGoogleSheetsPluginInputFields[nrfields];
   }
 	
 
@@ -153,7 +154,7 @@ public class PentahoGoogleSheetsPluginInputMeta extends BaseStepMeta implements 
 		retval.setSpreadsheetKey(this.spreadsheetKey);
         retval.setWorksheetId(this.worksheetId);
 		for ( int i = 0; i < nrKeys; i++ ) {
-			retval.inputFields[i] = (TextFileInputField) inputFields[i].clone();
+			retval.inputFields[i] = (PentahoGoogleSheetsPluginInputFields) inputFields[i].clone();
         }
         return retval;
     }
@@ -168,7 +169,7 @@ public class PentahoGoogleSheetsPluginInputMeta extends BaseStepMeta implements 
 				
             xml.append(XMLHandler.openTag("fields"));
             for ( int i = 0; i < inputFields.length; i++ ) {
-			  TextFileInputField field = inputFields[i];
+			  PentahoGoogleSheetsPluginInputFields field = inputFields[i];
 			  xml.append( "      <field>" ).append( Const.CR );
 			  xml.append( "        " ).append( XMLHandler.addTagValue( "name", field.getName() ) );
 			  xml.append( "        " ).append( XMLHandler.addTagValue( "type", field.getTypeDesc() ) );
@@ -205,7 +206,7 @@ public class PentahoGoogleSheetsPluginInputMeta extends BaseStepMeta implements 
 
             for ( int i = 0; i < nrfields; i++ ) {
 				Node fnode = XMLHandler.getSubNodeByNr( fields, "field", i );
-				TextFileInputField field = new TextFileInputField();
+				PentahoGoogleSheetsPluginInputFields field = new PentahoGoogleSheetsPluginInputFields();
 
 				field.setName( XMLHandler.getTagValue( fnode, "name" ) );
 				field.setType( ValueMetaFactory.getIdForValueMeta( XMLHandler.getTagValue( fnode, "type" ) ) );
@@ -242,7 +243,7 @@ public class PentahoGoogleSheetsPluginInputMeta extends BaseStepMeta implements 
             allocate(nrfields);
 
             for ( int i = 0; i < nrfields; i++ ) {
-				TextFileInputField field = new TextFileInputField();
+				PentahoGoogleSheetsPluginInputFields field = new PentahoGoogleSheetsPluginInputFields();
 
 				field.setName( rep.getStepAttributeString( id_step, i, "field_name" ) );
 				field.setType( ValueMetaFactory.getIdForValueMeta( rep.getStepAttributeString( id_step, i, "field_type" ) ) );
@@ -275,7 +276,7 @@ public class PentahoGoogleSheetsPluginInputMeta extends BaseStepMeta implements 
 		    int nrfields = rep.countNrStepAttributes(id_step, "field_name");
            
 		for ( int i = 0; i < inputFields.length; i++ ) {
-			TextFileInputField field = inputFields[i];
+			PentahoGoogleSheetsPluginInputFields field = inputFields[i];
 
 			rep.saveStepAttribute( id_transformation, id_step, i, "field_name", field.getName() );
 			rep.saveStepAttribute( id_transformation, id_step, i, "field_type", field.getTypeDesc() );
@@ -301,7 +302,7 @@ public class PentahoGoogleSheetsPluginInputMeta extends BaseStepMeta implements 
         try {
             inputRowMeta.clear(); // Start with a clean slate, eats the input
              for ( int i = 0; i < inputFields.length; i++ ) {
-			  TextFileInputField field = inputFields[i];
+			  PentahoGoogleSheetsPluginInputFields field = inputFields[i];
 
 			  int type = field.getType();
 			  if ( type == ValueMetaInterface.TYPE_NONE ) {

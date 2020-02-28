@@ -55,14 +55,15 @@ import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.*;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.Props;
-import org.pentaho.di.core.row.ValueMeta;
+import org.pentaho.di.core.row.value.ValueMetaFactory;
+import org.pentaho.di.core.row.value.ValueMetaString;
 import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.BaseStepMeta;
 import org.pentaho.di.trans.step.StepDialogInterface;
-import org.pentaho.di.trans.steps.textfileinput.TextFileInputField;
+import org.pentaho.di.trans.steps.pentahogooglesheets.PentahoGoogleSheetsPluginInputFields;
 import org.pentaho.di.ui.core.dialog.EnterSelectionDialog;
 import org.pentaho.di.ui.core.dialog.ErrorDialog;
 import org.pentaho.di.ui.core.widget.ColumnInfo;
@@ -339,18 +340,17 @@ public class PentahoGoogleSheetsPluginInputDialog extends BaseStepDialog impleme
         // Fields
         ColumnInfo[] columnInformation = new ColumnInfo[]{
                 new ColumnInfo("Name", ColumnInfo.COLUMN_TYPE_TEXT, false),
-                new ColumnInfo("Type", ColumnInfo.COLUMN_TYPE_CCOMBO, ValueMeta.getTypes(), true),
+                new ColumnInfo("Type", ColumnInfo.COLUMN_TYPE_CCOMBO, ValueMetaFactory.getValueMetaNames(), true),
                 new ColumnInfo("Format", ColumnInfo.COLUMN_TYPE_FORMAT, 2),
                 new ColumnInfo("Length", ColumnInfo.COLUMN_TYPE_TEXT, false),
                 new ColumnInfo("Precision", ColumnInfo.COLUMN_TYPE_TEXT, false),
                 new ColumnInfo("Currency", ColumnInfo.COLUMN_TYPE_TEXT, false),
                 new ColumnInfo("Decimal", ColumnInfo.COLUMN_TYPE_TEXT, false),
                 new ColumnInfo("Group", ColumnInfo.COLUMN_TYPE_TEXT, false),
-                new ColumnInfo("Trim type", ColumnInfo.COLUMN_TYPE_CCOMBO, ValueMeta.trimTypeDesc),
+                new ColumnInfo("Trim type", ColumnInfo.COLUMN_TYPE_CCOMBO, ValueMetaString.trimTypeDesc),
         };
 
-        columnInformation[2].setComboValuesSelectionListener(new ComboValuesSelectionListener() {
-
+        /*columnInformation[2].setComboValuesSelectionListener(new ComboValuesSelectionListener() {
             public String[] getComboValues(TableItem tableItem, int rowNr, int colNr) {
                 String[] comboValues = new String[]{};
                 int type = ValueMeta.getType(tableItem.getText(colNr - 1));
@@ -369,7 +369,7 @@ public class PentahoGoogleSheetsPluginInputDialog extends BaseStepDialog impleme
                 return comboValues;
             }
 
-        });
+        });*/
 
         wFields = new TableView(transMeta, fieldsComposite, SWT.FULL_SELECTION | SWT.MULTI, columnInformation, 1, modifiedListener, props);
 
@@ -507,19 +507,22 @@ public class PentahoGoogleSheetsPluginInputDialog extends BaseStepDialog impleme
 						i++;
                     }
 
-                    EnterSelectionDialog esd = new EnterSelectionDialog(shell, titles, "Spreadsheets",
-                            "Select a Spreadsheet.");
+                    EnterSelectionDialog esd = new EnterSelectionDialog(shell, titles, "Spreadsheets", "Select a Spreadsheet.");
                     if (selectedSpreadsheet > -1) {
                         esd.setSelectedNrs(new int[]{selectedSpreadsheet});
                     }
-                    esd.open();
-                    if (esd.getSelectionIndeces().length > 0) {
-                        selectedSpreadsheet = esd.getSelectionIndeces()[0];
-                        File spreadsheet = spreadsheets.get(selectedSpreadsheet);
-                        spreadsheetKey.setText(spreadsheet.getId());
-                    } else {
-                        spreadsheetKey.setText("");
-                    }
+					String s=esd.open();
+                    if(s!=null)
+					{
+						if (esd.getSelectionIndeces().length > 0) {
+							selectedSpreadsheet = esd.getSelectionIndeces()[0];
+							File spreadsheet = spreadsheets.get(selectedSpreadsheet);
+							spreadsheetKey.setText(spreadsheet.getId());							
+						} 
+						else {
+							spreadsheetKey.setText("");
+						}
+					}
 
                 } catch (Exception err) {
                     new ErrorDialog(shell, "System.Dialog.Error.Title", err.getMessage(), err);
@@ -558,16 +561,19 @@ public class PentahoGoogleSheetsPluginInputDialog extends BaseStepDialog impleme
                     if (selectedSheet > -1) {
                         esd.setSelectedNrs(new int[]{selectedSheet});
                     }
-                    esd.open();
-
-                    if (esd.getSelectionIndeces().length > 0) {
-                        selectedSheet = esd.getSelectionIndeces()[0];                       
-						Sheet sheet = worksheets.get(selectedSheet);
-                        String id = sheet.getProperties().getTitle();
-                        worksheetId.setText(id.substring(id.lastIndexOf("/") + 1));
-                    } else {
-                        worksheetId.setText("");
-                    }
+                    String s=esd.open();
+					if(s!=null)
+					{
+						if (esd.getSelectionIndeces().length > 0) {
+							selectedSheet = esd.getSelectionIndeces()[0];                       
+							Sheet sheet = worksheets.get(selectedSheet);
+							String id = sheet.getProperties().getTitle();
+							worksheetId.setText(id.substring(id.lastIndexOf("/") + 1));
+						} 
+						else {
+							worksheetId.setText("");
+						}
+					}
 
                 } catch (Exception err) {
                     new ErrorDialog(shell, BaseMessages.getString(PKG, "System.Dialog.Error.Title"), err.getMessage(), err);
@@ -606,7 +612,7 @@ public class PentahoGoogleSheetsPluginInputDialog extends BaseStepDialog impleme
 		
 
         for ( int i = 0; i < meta.getInputFields().length; i++ ) {
-		  TextFileInputField field = meta.getInputFields()[i];
+		  PentahoGoogleSheetsPluginInputFields field = meta.getInputFields()[i];
 
 		  TableItem item = new TableItem( wFields.table, SWT.NONE );
 
@@ -673,18 +679,18 @@ public class PentahoGoogleSheetsPluginInputDialog extends BaseStepDialog impleme
 
         for (int i = 0; i < nrNonEmptyFields; i++) {
             TableItem item = wFields.getNonEmpty(i);
-            meta.getInputFields()[i] = new TextFileInputField();
+            meta.getInputFields()[i] = new PentahoGoogleSheetsPluginInputFields();
 
             int colnr = 1;
             meta.getInputFields()[i].setName(item.getText(colnr++));
-            meta.getInputFields()[i].setType(ValueMeta.getType(item.getText(colnr++)));
+            meta.getInputFields()[i].setType(ValueMetaFactory.getIdForValueMeta(item.getText(colnr++)));
             meta.getInputFields()[i].setFormat(item.getText(colnr++));
             meta.getInputFields()[i].setLength(Const.toInt(item.getText(colnr++), -1));
             meta.getInputFields()[i].setPrecision(Const.toInt(item.getText(colnr++), -1));
             meta.getInputFields()[i].setCurrencySymbol(item.getText(colnr++));
             meta.getInputFields()[i].setDecimalSymbol(item.getText(colnr++));
             meta.getInputFields()[i].setGroupSymbol(item.getText(colnr++));
-            meta.getInputFields()[i].setTrimType(ValueMeta.getTrimTypeByDesc(item.getText(colnr++)));
+            meta.getInputFields()[i].setTrimType(ValueMetaString.getTrimTypeByDesc(item.getText(colnr++)));
         }
         wFields.removeEmptyRows();
         wFields.setRowNums();
@@ -726,7 +732,7 @@ public class PentahoGoogleSheetsPluginInputDialog extends BaseStepDialog impleme
 				 {
 				 TableItem item = new TableItem(wFields.table, SWT.NONE);
 				 item.setText(1, Const.trim(row.get(j).toString()));
-                 item.setText(2, ValueMeta.getTypeDesc(ValueMetaInterface.TYPE_STRING));
+                 item.setText(2, "String");
 				 }
 			 }
 			}

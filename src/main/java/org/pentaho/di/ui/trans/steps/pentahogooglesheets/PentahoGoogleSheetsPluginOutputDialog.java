@@ -55,14 +55,12 @@ import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.*;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.Props;
-import org.pentaho.di.core.row.ValueMeta;
 import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.BaseStepMeta;
 import org.pentaho.di.trans.step.StepDialogInterface;
-import org.pentaho.di.trans.steps.textfileinput.TextFileInputField;
 import org.pentaho.di.ui.core.dialog.EnterSelectionDialog;
 import org.pentaho.di.ui.core.dialog.ErrorDialog;
 import org.pentaho.di.ui.core.widget.ColumnInfo;
@@ -93,7 +91,6 @@ public class PentahoGoogleSheetsPluginOutputDialog extends BaseStepDialog implem
     private TextVar privateKeyStore;
     private TextVar spreadsheetKey;
     private TextVar worksheetId;
-    //private TableView wFields;
     private TextVar shareEmail;
 	private TextVar shareDomain;
     private Button create;
@@ -451,7 +448,6 @@ public class PentahoGoogleSheetsPluginOutputDialog extends BaseStepDialog implem
                 if ( filename != null ) {
 					 privateKeyStore.setText(filename);
 					 meta.setChanged();
-				
                 }
             }
         } );
@@ -510,14 +506,18 @@ public class PentahoGoogleSheetsPluginOutputDialog extends BaseStepDialog implem
                     if (selectedSpreadsheet > -1) {
                         esd.setSelectedNrs(new int[]{selectedSpreadsheet});
                     }
-                    esd.open();
-                    if (esd.getSelectionIndeces().length > 0) {
-                        selectedSpreadsheet = esd.getSelectionIndeces()[0];
-                        File spreadsheet = spreadsheets.get(selectedSpreadsheet);
-                        spreadsheetKey.setText(spreadsheet.getId());
-                    } else {
-                        spreadsheetKey.setText("");
-                    }
+					String s=esd.open();
+                    if(s!=null)
+					{
+						if (esd.getSelectionIndeces().length > 0) {
+							selectedSpreadsheet = esd.getSelectionIndeces()[0];
+							File spreadsheet = spreadsheets.get(selectedSpreadsheet);
+							spreadsheetKey.setText(spreadsheet.getId());						
+						} 
+						else {
+							spreadsheetKey.setText("");
+						}
+					}
 
                 } catch (Exception err) {
                     new ErrorDialog(shell, "System.Dialog.Error.Title", err.getMessage(), err);
@@ -551,21 +551,22 @@ public class PentahoGoogleSheetsPluginOutputDialog extends BaseStepDialog implem
                         }
                     }
 
-                    EnterSelectionDialog esd = new EnterSelectionDialog(shell, names, "Worksheets",
-                            "Select a Worksheet.");
+                    EnterSelectionDialog esd = new EnterSelectionDialog(shell, names, "Worksheets", "Select a Worksheet.");
                     if (selectedSheet > -1) {
                         esd.setSelectedNrs(new int[]{selectedSheet});
                     }
-                    esd.open();
-
-                    if (esd.getSelectionIndeces().length > 0) {
-                        selectedSheet = esd.getSelectionIndeces()[0];                       
-						Sheet sheet = worksheets.get(selectedSheet);
-                        String id = sheet.getProperties().getTitle();
-                        worksheetId.setText(id.substring(id.lastIndexOf("/") + 1));
-                    } else {
-                        worksheetId.setText("");
-                    }
+					String s=esd.open();
+                    if(s!=null){
+						if (esd.getSelectionIndeces().length > 0) {
+							selectedSheet = esd.getSelectionIndeces()[0];  						
+							Sheet sheet = worksheets.get(selectedSheet);
+							String id = sheet.getProperties().getTitle();
+							worksheetId.setText(id.substring(id.lastIndexOf("/") + 1));
+						} 
+						else {
+							worksheetId.setText("");
+						}
+					}
 
                 } catch (Exception err) {
                     new ErrorDialog(shell, BaseMessages.getString(PKG, "System.Dialog.Error.Title"), err.getMessage(), err);
@@ -585,7 +586,6 @@ public class PentahoGoogleSheetsPluginOutputDialog extends BaseStepDialog implem
         setSize();
         getData(meta);
         meta.setChanged(changed);
-
         shell.open();
         while (!shell.isDisposed()) {
             if (!display.readAndDispatch())
