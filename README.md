@@ -33,8 +33,7 @@ Let’s you specify or browse for spreadsheets existing in the service account d
 ### Fields tab
 Lets you select from the fields of the sheet.
 Fields name are always defined in the first line of the google spreadsheet.
-Note that they are all types as String for the moment.
-Input fields are mandatory.
+* Get Fields* lets you get fields and guess their types, format, precision, decimal and group delimiter as well as trim type.
 ![enter image description here](https://raw.githubusercontent.com/jfmonteil/Pentaho-Google-Sheet-Plugin/master/screenshots/PentahoGoogleSheetInput-Fields.png)
 
 ## Output step
