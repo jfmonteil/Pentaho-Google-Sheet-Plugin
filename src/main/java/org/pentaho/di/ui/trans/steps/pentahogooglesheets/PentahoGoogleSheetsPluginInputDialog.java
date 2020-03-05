@@ -82,7 +82,7 @@ import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
-@SuppressWarnings("WeakerAccess")
+
 public class PentahoGoogleSheetsPluginInputDialog extends BaseStepDialog implements StepDialogInterface {
 
     private static final Class<?> PKG = PentahoGoogleSheetsPluginInputMeta.class;
@@ -93,6 +93,7 @@ public class PentahoGoogleSheetsPluginInputDialog extends BaseStepDialog impleme
     private TextVar privateKeyStore;
     private TextVar spreadsheetKey;
     private TextVar worksheetId;
+	private TextVar sampleFields;
     private TableView wFields;
 	
     public PentahoGoogleSheetsPluginInputDialog(Shell parent, Object in, TransMeta transMeta, String name) {
@@ -323,6 +324,7 @@ public class PentahoGoogleSheetsPluginInputDialog extends BaseStepDialog impleme
         /*
          * BEGIN Fields Tab
          */
+		  // Nb Sample Fields - Label
         CTabItem fieldsTab = new CTabItem(tabFolder, SWT.NONE);
         fieldsTab.setText("Fields");
 
@@ -334,6 +336,26 @@ public class PentahoGoogleSheetsPluginInputDialog extends BaseStepDialog impleme
         fieldsLayout.marginHeight = 3;
         fieldsComposite.setLayout(fieldsLayout);
 
+
+	    Label sampleFieldsLabel = new Label(fieldsComposite, SWT.RIGHT);
+        sampleFieldsLabel.setText("Number of sample lines to guess field types : ");
+        props.setLook(sampleFieldsLabel);
+        FormData sampleFieldsLabelData = new FormData();
+        sampleFieldsLabelData.top = new FormAttachment(0, margin);
+        sampleFieldsLabelData.left = new FormAttachment(0, 0);
+        sampleFieldsLabelData.right = new FormAttachment(middle, -margin);
+        sampleFieldsLabel.setLayoutData(sampleFieldsLabelData);
+		
+        // sampleFields - Text
+        sampleFields = new TextVar(transMeta,fieldsComposite, SWT.SINGLE | SWT.LEFT | SWT.BORDER);
+        props.setLook(sampleFields);
+        sampleFields.addModifyListener(modifiedListener);
+        FormData sampleFieldsData = new FormData();
+        sampleFieldsData.top = new FormAttachment(0, margin);
+        sampleFieldsData.left = new FormAttachment(middle, 0);
+        sampleFieldsData.right = new FormAttachment(100, -margin);
+        sampleFields.setLayoutData(sampleFieldsData);
+		 
         wGet = new Button(fieldsComposite, SWT.PUSH);
         wGet.setText(BaseMessages.getString(PKG, "System.Button.GetFields"));
 
@@ -350,10 +372,10 @@ public class PentahoGoogleSheetsPluginInputDialog extends BaseStepDialog impleme
                 new ColumnInfo("Trim type", ColumnInfo.COLUMN_TYPE_CCOMBO, ValueMetaString.trimTypeDesc),
         };
 
-        /*columnInformation[2].setComboValuesSelectionListener(new ComboValuesSelectionListener() {
+    /*    columnInformation[2].setComboValuesSelectionListener(new ComboValuesSelectionListener() {
             public String[] getComboValues(TableItem tableItem, int rowNr, int colNr) {
                 String[] comboValues = new String[]{};
-                int type = ValueMeta.getType(tableItem.getText(colNr - 1));
+                int type = ValueMetaFactory.getType(tableItem.getText(colNr - 1));
                 switch (type) {
                     case ValueMetaInterface.TYPE_DATE:
                         comboValues = Const.getDateFormats();
@@ -374,7 +396,7 @@ public class PentahoGoogleSheetsPluginInputDialog extends BaseStepDialog impleme
         wFields = new TableView(transMeta, fieldsComposite, SWT.FULL_SELECTION | SWT.MULTI, columnInformation, 1, modifiedListener, props);
 
         FormData fdFields = new FormData();
-        fdFields.top = new FormAttachment(0, margin);
+        fdFields.top = new FormAttachment(sampleFields,margin);
         fdFields.bottom = new FormAttachment(wGet, -margin * 2);
         fdFields.left = new FormAttachment(0, 0);
         fdFields.right = new FormAttachment(100, 0);
@@ -608,6 +630,7 @@ public class PentahoGoogleSheetsPluginInputDialog extends BaseStepDialog impleme
         this.spreadsheetKey.setText(meta.getSpreadsheetKey());
 		this.worksheetId.setText(meta.getWorksheetId());
 		this.privateKeyStore.setText(meta.getJsonCredentialPath());
+		this.sampleFields.setText(Integer.toString(meta.getSampleFields()));
         
 		
 
@@ -634,29 +657,28 @@ public class PentahoGoogleSheetsPluginInputDialog extends BaseStepDialog impleme
 		  if ( format != null ) {
 			item.setText( 3, format );
 		  }
-		  if ( position != null && !"-1".equals( position ) ) {
-			item.setText( 4, position );
-		  }
-		  if ( length != null && !"-1".equals( length ) ) {
-			item.setText( 5, length );
-		  }
+		  /*if ( position != null && !"-1".equals( position ) ) {
+			item.setText( , position );
+		  }*/
+		 /* if ( length != null && !"-1".equals( length ) ) {
+			item.setText( 4, length );
+		  }*/
 		  if ( prec != null && !"-1".equals( prec ) ) {
-			item.setText( 6, prec );
+			item.setText( 5, prec );
 		  }
 		  if ( curr != null ) {
-			item.setText( 7, curr );
+			item.setText( 5, curr );
 		  }
 		  if ( decim != null ) {
-			item.setText( 8, decim );
+			item.setText( 7, decim );
 		  }
 		  if ( group != null ) {
-			item.setText( 9, group );
+			item.setText( 8, group );
 		  }
 		  if ( trim != null ) {
-			item.setText( 12, trim );
-		  }
-
-    }
+			item.setText(9, trim );
+		  }		  			
+		}
 
 
         wFields.removeEmptyRows();
@@ -672,8 +694,14 @@ public class PentahoGoogleSheetsPluginInputDialog extends BaseStepDialog impleme
         meta.setJsonCredentialPath(this.privateKeyStore.getText());
 		meta.setSpreadsheetKey(this.spreadsheetKey.getText());
         meta.setWorksheetId(this.worksheetId.getText());
+		if(this.sampleFields!=null && !this.sampleFields.getText().isEmpty())
+		{
+		    meta.setSampleFields(Integer.parseInt(this.sampleFields.getText()));
+		}
+			else {
+				meta.setSampleFields(100);
+			}
 		
-
         int nrNonEmptyFields = wFields.nrNonEmpty();
         meta.allocate(nrNonEmptyFields);
 
@@ -695,7 +723,6 @@ public class PentahoGoogleSheetsPluginInputDialog extends BaseStepDialog impleme
         wFields.removeEmptyRows();
         wFields.setRowNums();
         wFields.optWidth(true);
-
         meta.setChanged();
     }
 
@@ -710,6 +737,32 @@ public class PentahoGoogleSheetsPluginInputDialog extends BaseStepDialog impleme
         setData(this.meta);
         dispose();
     }
+	
+	private static String getColumnName(int n)
+	{
+		// initalize output String as empty
+		StringBuilder res = new StringBuilder();
+        if (n ==0)
+		{
+		res.append('A');
+		}
+		else 
+		{
+			while (n > 0)
+			{
+				// find index of next letter and concatenate the letter
+				// to the solution
+
+				// Here index 0 corresponds to 'A' and 25 corresponds to 'Z'
+				int index = (n - 1) % 26;
+				res.append((char)(index + 'A'));
+				n = (n - 1) / 26;
+			}
+		}
+
+		return res.reverse().toString();
+	}
+
 
     private void getSpreadsheetFields() {
         try {
@@ -723,6 +776,11 @@ public class PentahoGoogleSheetsPluginInputDialog extends BaseStepDialog impleme
             wFields.table.removeAll();
 			
 			Sheets service = new Sheets.Builder(HTTP_TRANSPORT, JSON_FACTORY, PentahoGoogleSheetsPluginCredentials.getCredentialsJson(scope,transMeta.environmentSubstitute(privateKeyStore.getText()))).setApplicationName(APPLICATION_NAME).build();
+			//Fill in sample in order to guess types
+			
+			
+            
+			
 			String range=transMeta.environmentSubstitute(meta.getWorksheetId())+"!"+"1:1";
 			ValueRange result = service.spreadsheets().values().get(transMeta.environmentSubstitute(meta.getSpreadsheetKey()), range).execute();            
 			List<List<Object>> values = result.getValues();
@@ -732,7 +790,49 @@ public class PentahoGoogleSheetsPluginInputDialog extends BaseStepDialog impleme
 				 {
 				 TableItem item = new TableItem(wFields.table, SWT.NONE);
 				 item.setText(1, Const.trim(row.get(j).toString()));
-                 item.setText(2, "String");
+                 //Fill in sample in order to guess types ___ PentahoGoogleSheetsPluginInputFields( String fieldname, int position, int length )
+				 PentahoGoogleSheetsPluginInputFields sampleInputFields = new PentahoGoogleSheetsPluginInputFields();
+				 String columnsLetter=getColumnName(j+1);
+ 			     logBasic("column:"+Integer.toString(j)+")"+columnsLetter);
+
+				 String sampleRange=transMeta.environmentSubstitute(meta.getWorksheetId())+"!"+columnsLetter+"2:"+columnsLetter+transMeta.environmentSubstitute(sampleFields.getText());
+			     logBasic("Guess Fieds : Range : "+sampleRange);
+				 ValueRange sampleResult = service.spreadsheets().values().get(transMeta.environmentSubstitute(meta.getSpreadsheetKey()), sampleRange).execute();            
+                 List<List<Object>> sampleValues = sampleResult.getValues();
+				 if(sampleValues!=null)
+				 {					 
+					 int m=0;
+					 String[] tmpSampleColumnValues=new String[sampleValues.size()];
+					 for(List sampleRow : sampleValues)
+					 {
+						 
+						 if(sampleRow!=null && sampleRow.size()>0 && sampleRow.get(0)!=null && !sampleRow.get(0).toString().isEmpty())
+						 {
+							 String tmp=sampleRow.get(0).toString();
+							 logBasic(Integer.toString(m)+")"+tmp.toString());
+							 tmpSampleColumnValues[m]=tmp;
+							 m++;
+						 }
+						 else  {
+							logBasic("no sample values");
+						 }
+					 }
+					 String[] sampleColumnValues=new String[m];
+					 System.arraycopy(tmpSampleColumnValues, 0, sampleColumnValues, 0, m);
+					 sampleInputFields.setSamples(sampleColumnValues);
+					 sampleInputFields.guess();
+					 item.setText(2, sampleInputFields.getTypeDesc());
+					 item.setText(3, sampleInputFields.getFormat());
+					 item.setText(5, Integer.toString(sampleInputFields.getPrecision()));
+					 item.setText(6, sampleInputFields.getCurrencySymbol());
+					 item.setText(7, sampleInputFields.getDecimalSymbol());
+					 item.setText(8, sampleInputFields.getGroupSymbol());
+					 item.setText(9, sampleInputFields.getTrimTypeDesc());
+				  } 
+				  else 	
+				  {
+					  item.setText(2, "String");
+				  }			 
 				 }
 			 }
 			}
