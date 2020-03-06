@@ -98,10 +98,10 @@ public class PentahoGoogleSheetsPluginOutputMeta extends BaseStepMeta implements
 	private String shareDomain;
 	
 	@Injection( name = "Create", group = "SHEET" )
-	private Boolean create=false; //Last Will retain Mode
+	private Boolean create; 
 	
     @Injection( name = "Append", group = "SHEET" )
-	private Boolean append=false; //Last Will retain Mode
+	private Boolean append; 
 		
     @Override
     public void setDefault() {   
@@ -163,7 +163,7 @@ public class PentahoGoogleSheetsPluginOutputMeta extends BaseStepMeta implements
     }
 	
 	public Boolean getAppend() {
-        return this.create == null ? false : this.create;
+        return this.append == null ? false : this.append;
     }
 
     public String getWorksheetId() {
@@ -254,7 +254,7 @@ public class PentahoGoogleSheetsPluginOutputMeta extends BaseStepMeta implements
               rep.saveStepAttribute( id_transformation, id_step, "CREATE", this.create );
 			}
 			if ( this.append != null ) {
-              rep.saveStepAttribute( id_transformation, id_step, "APPEND", this.create );
+              rep.saveStepAttribute( id_transformation, id_step, "APPEND", this.append );
 			}
         } catch (Exception e) {
             throw new KettleException("Unable to save step information to the repository for id_step=" + id_step, e);
