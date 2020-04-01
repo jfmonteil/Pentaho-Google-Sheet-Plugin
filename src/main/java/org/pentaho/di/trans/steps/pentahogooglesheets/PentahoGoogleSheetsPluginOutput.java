@@ -292,8 +292,8 @@ public class PentahoGoogleSheetsPluginOutput extends BaseStep implements StepInt
 			data.currentRow++;	
 		}
 		
-	} else {
-		try {
+	} 
+	try {
 				//if last row is reached
 				if (row == null) { 
 					        if(data.currentRow>0)
@@ -376,7 +376,7 @@ public class PentahoGoogleSheetsPluginOutput extends BaseStep implements StepInt
 		} finally {
 			data.currentRow++;
 		}
-	}
+	
 
       
     return true;

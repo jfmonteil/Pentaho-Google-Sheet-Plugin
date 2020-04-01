@@ -119,7 +119,6 @@ public class PentahoGoogleSheetsPluginInputMeta extends BaseStepMeta implements 
 		return inputFields;
 	}
 
-
     public String getSpreadsheetKey() {
         return this.spreadsheetKey == null ? "" : this.spreadsheetKey;
     }
