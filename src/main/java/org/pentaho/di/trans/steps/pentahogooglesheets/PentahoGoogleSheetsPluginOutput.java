@@ -139,7 +139,7 @@ public class PentahoGoogleSheetsPluginOutput extends BaseStep implements StepInt
                     String wsID=environmentSubstitute(meta.getSpreadsheetKey());
 					//"properties has { key='id' and value='"+wsID+"'}";
 					String q="mimeType='application/vnd.google-apps.spreadsheet'";
-					FileList result = service.files().list().setQ(q).setPageSize(100).setFields("nextPageToken, files(id, name)").execute();
+					FileList result = service.files().list().setSupportsAllDrives(true).setIncludeItemsFromAllDrives(true).setQ(q).setPageSize(100).setFields("nextPageToken, files(id, name)").execute();
                     List<File> spreadsheets = result.getFiles();
 	  					
 					for (File spreadsheet:spreadsheets) {

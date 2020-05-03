@@ -488,8 +488,10 @@ public class PentahoGoogleSheetsPluginOutputDialog extends BaseStepDialog implem
 					String scope="https://www.googleapis.com/auth/drive";
 					Drive service = new Drive.Builder(HTTP_TRANSPORT, JSON_FACTORY, PentahoGoogleSheetsPluginCredentials.getCredentialsJson(scope,transMeta.environmentSubstitute(privateKeyStore.getText()))).setApplicationName(APPLICATION_NAME).build();
 					
-                    FileList result = service.files().list().setQ("mimeType='application/vnd.google-apps.spreadsheet'").setPageSize(100).setFields("nextPageToken, files(id, name)").execute();
-                    List<File> spreadsheets = result.getFiles();
+					FileList result = service.files().list().setSupportsAllDrives(true).setIncludeItemsFromAllDrives(true).setQ("mimeType='application/vnd.google-apps.spreadsheet'").setPageSize(100).setFields("nextPageToken, files(id, name)").execute();
+                 // FileList result = service.files().list().setQ("mimeType='application/vnd.google-apps.spreadsheet'").setPageSize(100).setFields("nextPageToken, files(id, name)").execute();
+                 // FileList result = service.files().list().setQ("mimeType='application/vnd.google-apps.spreadsheet'").setPageSize(100).setFields("nextPageToken, files(id, name)").execute();
+					List<File> spreadsheets = result.getFiles();
                     int selectedSpreadsheet = -1;
                     int i=0;
 					String[] titles=new String[spreadsheets.size()];

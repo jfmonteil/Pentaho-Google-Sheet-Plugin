@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.pentaho</groupId>
   <artifactId>PentahoGoogleSheetsPlugin</artifactId>
-  <version>3</version>
+  <version>4.2</version>
   <packaging>jar</packaging>
   <name>"Pentaho Google Sheets"</name>
   <description>"Google Sheets Pentaho Plugin API V4"</description>
@@ -91,7 +91,8 @@
 		<version>3.1</version>
 		<configuration>
 			<source>1.7</source>
-			<target>1.7</target>
+			<target>1.7</target>			   
+            <showDeprecation>true</showDeprecation>
 		</configuration>
 	  </plugin>
 	  <plugin>
