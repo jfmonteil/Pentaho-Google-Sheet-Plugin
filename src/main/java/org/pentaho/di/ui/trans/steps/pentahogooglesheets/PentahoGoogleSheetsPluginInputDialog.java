@@ -794,6 +794,9 @@ public class PentahoGoogleSheetsPluginInputDialog extends BaseStepDialog impleme
 				 PentahoGoogleSheetsPluginInputFields sampleInputFields = new PentahoGoogleSheetsPluginInputFields();
 				 String columnsLetter=getColumnName(j+1);
  			     logBasic("column:"+Integer.toString(j)+")"+columnsLetter);
+                 Integer nbSampleFields=Integer.parseInt(transMeta.environmentSubstitute(sampleFields.getText()));
+			
+					
 
 				 String sampleRange=transMeta.environmentSubstitute(meta.getWorksheetId())+"!"+columnsLetter+"2:"+columnsLetter+transMeta.environmentSubstitute(sampleFields.getText());
 			     logBasic("Guess Fieds : Range : "+sampleRange);
@@ -833,6 +836,7 @@ public class PentahoGoogleSheetsPluginInputDialog extends BaseStepDialog impleme
 				  {
 					  item.setText(2, "String");
 				  }			 
+				 
 				 }
 			 }
 			}
