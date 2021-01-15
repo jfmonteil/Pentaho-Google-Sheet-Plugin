@@ -92,7 +92,7 @@ public class PentahoGoogleSheetsPluginInputMeta extends BaseStepMeta implements 
 	@Injection( name = "worksheetId", group = "SHEET" )
 	private String worksheetId;
 	
-	@Injection( name = "sampleFields", group = "INPUT_Fields" )
+	@Injection( name = "sampleFields", group = "INPUT_FIELDS" )
 	private Integer sampleFields;
 	
 	@InjectionDeep
