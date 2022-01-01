@@ -22,16 +22,11 @@ import org.pentaho.di.trans.steps.pentahogooglesheets.PentahoGoogleSheetsPluginC
 import org.pentaho.di.trans.steps.pentahogooglesheets.PentahoGoogleSheetsPluginOutputMeta;
 
 
-import com.google.api.client.auth.oauth2.Credential;
-import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
-import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
-import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
-import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
+import com.google.api.client.http.HttpRequest;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
-import com.google.api.client.json.jackson2.JacksonFactory;
+import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.sheets.v4.Sheets;
 import com.google.api.services.sheets.v4.SheetsScopes;
@@ -44,6 +39,7 @@ import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.DriveScopes;
 import com.google.api.services.drive.model.File;
 import com.google.api.services.drive.model.FileList;
+import com.google.api.client.http.HttpRequestInitializer;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
@@ -71,12 +67,7 @@ import org.pentaho.di.ui.trans.step.BaseStepDialog;
 import org.pentaho.di.core.variables.Variables;
 
 
-import javax.security.auth.x500.X500Principal;
-import java.io.FileInputStream;
-import java.net.URL;
-import java.security.KeyStore;
-import java.security.PrivateKey;
-import java.security.cert.X509Certificate;
+import java.io.IOException;
 import java.util.List;
 
 @SuppressWarnings("WeakerAccess")
@@ -95,10 +86,31 @@ public class PentahoGoogleSheetsPluginOutputDialog extends BaseStepDialog implem
 	private TextVar shareDomain;
     private Button create;
 	private Button append;
+    private TextVar timeout;
+    private TextVar impersonation;
+    private TextVar appName;
 	
     public PentahoGoogleSheetsPluginOutputDialog(Shell parent, Object in, TransMeta transMeta, String name) {
         super(parent, (BaseStepMeta) in, transMeta, name);
         this.meta = (PentahoGoogleSheetsPluginOutputMeta) in;
+    }
+
+    private static HttpRequestInitializer setHttpTimeout(final HttpRequestInitializer requestInitializer, final String timeout) {
+        return new HttpRequestInitializer() {
+            @Override
+            public void initialize(HttpRequest httpRequest) throws IOException {
+                requestInitializer.initialize(httpRequest);
+                Integer TO = 5;
+                if(!timeout.isEmpty()) {
+                    TO = Integer.parseInt(timeout);
+                }
+
+
+
+                httpRequest.setConnectTimeout(TO * 60000);  // 3 minutes connect timeout
+                httpRequest.setReadTimeout(TO * 60000);  // 3 minutes read timeout
+            }};
+
     }
 
     @Override
@@ -205,19 +217,79 @@ public class PentahoGoogleSheetsPluginOutputDialog extends BaseStepDialog implem
 		privateKeyStoreData.right = new FormAttachment(privateKeyButton, -margin);
         privateKeyStore.setLayoutData(privateKeyStoreData);
 
+        // Appname - Label
+        Label appNameLabel = new Label( serviceAccountComposite, SWT.RIGHT );
+        appNameLabel.setText( "Google Application Name :" );
+        props.setLook( appNameLabel );
+        FormData appNameLabelForm = new FormData();
+        appNameLabelForm.top = new FormAttachment( privateKeyButton, margin );
+        appNameLabelForm.left = new FormAttachment( 0, 0 );
+        appNameLabelForm.right = new FormAttachment( middle, -margin );
+        appNameLabel.setLayoutData( appNameLabelForm );
+
+        // Appname - Text
+        appName = new TextVar(transMeta,serviceAccountComposite, SWT.SINGLE | SWT.LEFT | SWT.BORDER);
+        props.setLook(appName);
+        appName.addModifyListener(modifiedListener);
+        FormData appNameData = new FormData();
+        appNameData.top = new FormAttachment(privateKeyButton, margin);
+        appNameData.left = new FormAttachment(middle, 0);
+        appNameData.right = new FormAttachment(privateKeyButton, -margin);
+        appName.setLayoutData(appNameData);
+
+        // Timeout - Label
+        Label timeoutLabel = new Label( serviceAccountComposite, SWT.RIGHT );
+        timeoutLabel.setText( "Time out in minutes :" );
+        props.setLook( timeoutLabel );
+        FormData timeoutLabelForm = new FormData();
+        timeoutLabelForm.top = new FormAttachment( appNameLabel, margin );
+        timeoutLabelForm.left = new FormAttachment( 0, 0 );
+        timeoutLabelForm.right = new FormAttachment( middle, -margin );
+        timeoutLabel.setLayoutData( timeoutLabelForm );
+
+        // timeout - Text
+        timeout = new TextVar(transMeta,serviceAccountComposite, SWT.SINGLE | SWT.LEFT | SWT.BORDER);
+        props.setLook(timeout);
+        timeout.addModifyListener(modifiedListener);
+        FormData timeoutData = new FormData();
+        timeoutData.top = new FormAttachment(appNameLabel, margin);
+        timeoutData.left = new FormAttachment(middle, 0);
+        timeoutData.right = new FormAttachment(privateKeyButton, -margin);
+        timeout.setLayoutData(timeoutData);
+
+        // Impersonation - Label
+        Label impersonationLabel = new Label( serviceAccountComposite, SWT.RIGHT );
+        impersonationLabel.setText( "Inpersonation account :" );
+        props.setLook( impersonationLabel );
+        FormData impersonationLabelForm = new FormData();
+        impersonationLabelForm.top = new FormAttachment( timeout, margin );
+        impersonationLabelForm.left = new FormAttachment( 0, 0 );
+        impersonationLabelForm.right = new FormAttachment( middle, -margin );
+        impersonationLabel.setLayoutData( impersonationLabelForm );
+
+        // impersonation - Text
+        impersonation = new TextVar(transMeta,serviceAccountComposite, SWT.SINGLE | SWT.LEFT | SWT.BORDER);
+        props.setLook(impersonation);
+        impersonation.addModifyListener(modifiedListener);
+        FormData impersonationData = new FormData();
+        impersonationData.top = new FormAttachment(timeout, margin);
+        impersonationData.left = new FormAttachment(middle, 0);
+        impersonationData.right = new FormAttachment(privateKeyButton, -margin);
+        impersonation.setLayoutData(impersonationData);
+
         // test service - Button
         Button testServiceAccountButton = new Button(serviceAccountComposite, SWT.PUSH | SWT.CENTER);
         props.setLook(testServiceAccountButton);
         testServiceAccountButton.setText("Test Connection");
         FormData testServiceAccountButtonData = new FormData();
-        testServiceAccountButtonData.top = new FormAttachment(privateKeyButton, margin);
+        testServiceAccountButtonData.top = new FormAttachment(impersonation, margin);
         testServiceAccountButtonData.left = new FormAttachment(0, 0);
         testServiceAccountButton.setLayoutData(testServiceAccountButtonData);
 
         testServiceAccountInfo = new Label(serviceAccountComposite, SWT.LEFT);
         props.setLook(testServiceAccountInfo);
         FormData testServiceAccountInfoData = new FormData();
-        testServiceAccountInfoData.top = new FormAttachment(privateKeyButton, margin);
+        testServiceAccountInfoData.top = new FormAttachment(impersonation, margin);
         testServiceAccountInfoData.left = new FormAttachment(middle, 0);
         testServiceAccountInfoData.right = new FormAttachment(100, 0);
         testServiceAccountInfo.setLayoutData(testServiceAccountInfoData);
@@ -459,13 +531,13 @@ public class PentahoGoogleSheetsPluginOutputDialog extends BaseStepDialog implem
             public void widgetSelected(SelectionEvent e) {
                 try {						
                     NetHttpTransport HTTP_TRANSPORT=GoogleNetHttpTransport.newTrustedTransport();
-				    String APPLICATION_NAME = "pentaho-sheets";
-                    JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
+				    String APPLICATION_NAME = transMeta.environmentSubstitute(appName.getText());
+                    JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
                     String TOKENS_DIRECTORY_PATH = Const.getKettleDirectory() +"/tokens";
 					String scope=SheetsScopes.SPREADSHEETS_READONLY;
-					Drive service = new Drive.Builder(HTTP_TRANSPORT, JSON_FACTORY, PentahoGoogleSheetsPluginCredentials.getCredentialsJson(scope,transMeta.environmentSubstitute(privateKeyStore.getText()))).setApplicationName(APPLICATION_NAME).build();
+					Drive service = new Drive.Builder(HTTP_TRANSPORT, JSON_FACTORY, setHttpTimeout(PentahoGoogleSheetsPluginCredentials.getCredentialsJson(scope,transMeta.environmentSubstitute(privateKeyStore.getText()), transMeta.environmentSubstitute(impersonation.getText())),transMeta.environmentSubstitute(timeout.getText()))).setApplicationName(APPLICATION_NAME).build();
                     testServiceAccountInfo.setText("");
-                    
+
                     if (service == null) {
                         testServiceAccountInfo.setText("Connection Failed");
                     } else {
@@ -482,15 +554,14 @@ public class PentahoGoogleSheetsPluginOutputDialog extends BaseStepDialog implem
             public void widgetSelected(SelectionEvent e) {
                 try {
                     NetHttpTransport HTTP_TRANSPORT=GoogleNetHttpTransport.newTrustedTransport();
-				    String APPLICATION_NAME = "pentaho-sheets";
-                    JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
+				    String APPLICATION_NAME = transMeta.environmentSubstitute(appName.getText());
+                    JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
                     String TOKENS_DIRECTORY_PATH = Const.getKettleDirectory() +"/tokens";   
 					String scope="https://www.googleapis.com/auth/drive";
-					Drive service = new Drive.Builder(HTTP_TRANSPORT, JSON_FACTORY, PentahoGoogleSheetsPluginCredentials.getCredentialsJson(scope,transMeta.environmentSubstitute(privateKeyStore.getText()))).setApplicationName(APPLICATION_NAME).build();
-					
+                    Drive service = new Drive.Builder(HTTP_TRANSPORT, JSON_FACTORY, setHttpTimeout(
+                            PentahoGoogleSheetsPluginCredentials.getCredentialsJson(scope,transMeta.environmentSubstitute(privateKeyStore.getText()),transMeta.environmentSubstitute(meta.getImpersonation())),
+                            transMeta.environmentSubstitute(meta.getTimeout()))).setApplicationName(APPLICATION_NAME).build();
 					FileList result = service.files().list().setSupportsAllDrives(true).setIncludeItemsFromAllDrives(true).setQ("mimeType='application/vnd.google-apps.spreadsheet'").setPageSize(100).setFields("nextPageToken, files(id, name)").execute();
-                 // FileList result = service.files().list().setQ("mimeType='application/vnd.google-apps.spreadsheet'").setPageSize(100).setFields("nextPageToken, files(id, name)").execute();
-                 // FileList result = service.files().list().setQ("mimeType='application/vnd.google-apps.spreadsheet'").setPageSize(100).setFields("nextPageToken, files(id, name)").execute();
 					List<File> spreadsheets = result.getFiles();
                     int selectedSpreadsheet = -1;
                     int i=0;
@@ -533,12 +604,12 @@ public class PentahoGoogleSheetsPluginOutputDialog extends BaseStepDialog implem
                 try {
                   					
 					NetHttpTransport HTTP_TRANSPORT=GoogleNetHttpTransport.newTrustedTransport();
-				    String APPLICATION_NAME = "pentaho-sheets";
-                    JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
+				    String APPLICATION_NAME = transMeta.environmentSubstitute(appName.getText());
+                    JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
                     String TOKENS_DIRECTORY_PATH = Const.getKettleDirectory() +"/tokens";
 					String scope=SheetsScopes.SPREADSHEETS_READONLY;
 					
-					Sheets service = new Sheets.Builder(HTTP_TRANSPORT, JSON_FACTORY, PentahoGoogleSheetsPluginCredentials.getCredentialsJson(scope,transMeta.environmentSubstitute(privateKeyStore.getText()))).setApplicationName(APPLICATION_NAME).build();
+					Sheets service = new Sheets.Builder(HTTP_TRANSPORT, JSON_FACTORY, setHttpTimeout(PentahoGoogleSheetsPluginCredentials.getCredentialsJson(scope,transMeta.environmentSubstitute(privateKeyStore.getText()),transMeta.environmentSubstitute(impersonation.getText())),transMeta.environmentSubstitute(timeout.getText()))).setApplicationName(APPLICATION_NAME).build();
 					Spreadsheet response1= service.spreadsheets().get(spreadsheetKey.getText()).setIncludeGridData(false).execute();
 
                     
@@ -604,7 +675,9 @@ public class PentahoGoogleSheetsPluginOutputDialog extends BaseStepDialog implem
 		this.shareEmail.setText(meta.getShareEmail());
 		this.create.setSelection( meta.getCreate() );
 		this.append.setSelection( meta.getAppend() );
-
+        this.timeout.setText( meta.getTimeout() );
+        this.impersonation.setText(meta.getImpersonation());
+        this.appName.setText( meta.getAppName());
         this.shareDomain.setText(meta.getShareDomain());
 		this.privateKeyStore.setText(meta.getJsonCredentialPath());
        
@@ -620,7 +693,9 @@ public class PentahoGoogleSheetsPluginOutputDialog extends BaseStepDialog implem
 		meta.setCreate(this.create.getSelection());
 		meta.setAppend(this.append.getSelection());
         meta.setShareDomain(this.shareDomain.getText());
-
+        meta.setTimeout(this.timeout.getText());
+        meta.setAppName(this.appName.getText());
+        meta.setImpersonation(this.impersonation.getText());
     }
 
     private void cancel() {

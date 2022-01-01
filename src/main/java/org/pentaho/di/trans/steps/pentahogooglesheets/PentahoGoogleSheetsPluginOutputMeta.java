@@ -101,8 +101,17 @@ public class PentahoGoogleSheetsPluginOutputMeta extends BaseStepMeta implements
 	private Boolean create; 
 	
     @Injection( name = "Append", group = "SHEET" )
-	private Boolean append; 
-		
+	private Boolean append;
+
+    @Injection( name = "timeout", group = "SHEET" )
+    private String timeout;
+
+    @Injection( name = "impersonation", group = "SHEET" )
+    private String impersonation;
+
+    @Injection( name = "appName", group = "SHEET" )
+    private String appName;
+
     @Override
     public void setDefault() {   
         this.jsonCredentialPath = Const.getKettleDirectory() + "/client_secret.json";
@@ -112,6 +121,9 @@ public class PentahoGoogleSheetsPluginOutputMeta extends BaseStepMeta implements
 		this.shareEmail = ""; 
 		this.create=false;
 		this.append=false;
+		this.timeout="5";
+		this.impersonation="";
+		this.appName="";
     }
 		
    /* public String getDialogClassName() {
@@ -174,6 +186,28 @@ public class PentahoGoogleSheetsPluginOutputMeta extends BaseStepMeta implements
         this.worksheetId = id;
     }
 
+
+    public void setTimeout(String timeout) {
+        this.timeout = timeout;
+    }
+    public String getTimeout() {
+        return this.timeout == null ? "" : this.timeout;
+    }
+
+    public void setImpersonation(String impersonation) {
+        this.impersonation = impersonation;
+    }
+    public String getImpersonation() {
+        return this.impersonation == null ? "" : this.impersonation;
+    }
+
+    public void setAppName(String appName) {
+        this.appName = appName;
+    }
+    public String getAppName() {
+        return this.appName == null ? "" : this.appName;
+    }
+
     @Override
     public Object clone() {
         PentahoGoogleSheetsPluginOutputMeta retval = (PentahoGoogleSheetsPluginOutputMeta) super.clone();
@@ -184,6 +218,9 @@ public class PentahoGoogleSheetsPluginOutputMeta extends BaseStepMeta implements
 		retval.setAppend(this.append);
 		retval.setShareEmail(this.shareEmail);
 	    retval.setShareDomain(this.shareDomain);
+        retval.setImpersonation(this.impersonation);
+        retval.setTimeout(this.timeout);
+        retval.setAppName(this.appName);
         return retval;
     }
 
@@ -198,6 +235,9 @@ public class PentahoGoogleSheetsPluginOutputMeta extends BaseStepMeta implements
             xml.append(XMLHandler.addTagValue( "APPEND", Boolean.toString(this.append)));
 			xml.append(XMLHandler.addTagValue("SHAREEMAIL", this.shareEmail));	
             xml.append(XMLHandler.addTagValue("SHAREDOMAIN", this.shareDomain));
+            xml.append(XMLHandler.addTagValue("timeout", this.timeout));
+            xml.append(XMLHandler.addTagValue("impersonation", this.impersonation));
+            xml.append(XMLHandler.addTagValue("appName", this.appName));
         } catch (Exception e) {
             throw new KettleValueException("Unable to write step to XML", e);
         }
@@ -214,7 +254,9 @@ public class PentahoGoogleSheetsPluginOutputMeta extends BaseStepMeta implements
 			this.append= Boolean.parseBoolean( XMLHandler.getTagValue( stepnode,"APPEND" ));
 			this.shareEmail= XMLHandler.getTagValue(stepnode,"SHAREEMAIL" );
             this.shareDomain= XMLHandler.getTagValue(stepnode,"SHAREDOMAIN" );
-
+            this.timeout = XMLHandler.getTagValue(stepnode, "timeout");
+            this.impersonation = XMLHandler.getTagValue(stepnode, "impersonation");
+            this.appName = XMLHandler.getTagValue(stepnode, "appName");
         } catch (Exception e) {
             throw new KettleXMLException("Unable to load step from XML", e);
         }
@@ -227,11 +269,13 @@ public class PentahoGoogleSheetsPluginOutputMeta extends BaseStepMeta implements
             this.jsonCredentialPath = rep.getStepAttributeString(id_step, "jsonCredentialPath");
 			this.worksheetId = rep.getStepAttributeString(id_step, "worksheetId");
             this.spreadsheetKey = rep.getStepAttributeString(id_step, "spreadsheetKey");
+            this.appName = rep.getStepAttributeString(id_step, "appName");
 			this.shareEmail=rep.getStepAttributeString(id_step, "SHAREEMAIL");
 			this.shareDomain=rep.getStepAttributeString(id_step, "SHAREDOMAIN");
 			this.create=Boolean.parseBoolean( rep.getStepAttributeString( id_step, "CREATE" ));
 			this.append=Boolean.parseBoolean( rep.getStepAttributeString( id_step, "APPEND" ));
-
+            this.impersonation=rep.getStepAttributeString(id_step, "impersonation");
+            this.timeout=rep.getStepAttributeString(id_step, "timeout");
        
         } catch (Exception e) {
             throw new KettleException("Unexpected error reading step information from the repository", e);
@@ -256,6 +300,16 @@ public class PentahoGoogleSheetsPluginOutputMeta extends BaseStepMeta implements
 			if ( this.append != null ) {
               rep.saveStepAttribute( id_transformation, id_step, "APPEND", this.append );
 			}
+            if ( this.timeout != null ) {
+                rep.saveStepAttribute( id_transformation, id_step, "timeout", this.timeout );
+            }
+            if ( this.impersonation != null ) {
+                rep.saveStepAttribute( id_transformation, id_step, "impersonation", this.impersonation );
+            }
+            if ( this.appName != null ) {
+                rep.saveStepAttribute( id_transformation, id_step, "appName", this.impersonation );
+            }
+
         } catch (Exception e) {
             throw new KettleException("Unable to save step information to the repository for id_step=" + id_step, e);
         }

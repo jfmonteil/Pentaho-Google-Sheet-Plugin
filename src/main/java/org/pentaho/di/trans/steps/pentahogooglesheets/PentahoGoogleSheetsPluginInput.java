@@ -21,6 +21,7 @@ package org.pentaho.di.trans.steps.pentahogooglesheets;
 
 
 
+import com.google.api.client.http.HttpRequestInitializer;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.row.RowDataUtil;
 import org.pentaho.di.core.row.RowMeta;
@@ -40,7 +41,7 @@ import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 
 import com.google.api.client.json.JsonFactory;
-import com.google.api.client.json.jackson2.JacksonFactory;
+import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.sheets.v4.Sheets;
 import com.google.api.services.sheets.v4.model.ValueRange;
 import com.google.api.services.sheets.v4.SheetsScopes;
@@ -76,15 +77,7 @@ public class PentahoGoogleSheetsPluginInput extends BaseStep implements StepInte
   public PentahoGoogleSheetsPluginInput( StepMeta stepMeta, StepDataInterface stepDataInterface, int copyNr, TransMeta transMeta, Trans trans ) {
     super( stepMeta, stepDataInterface, copyNr, transMeta, trans );
   }
-  
-  /**
-     * Initialize and do work where other steps need to wait for...
-     *
-     * @param stepMetaInterface
-     *          The metadata to work with
-     * @param stepDataInterface
-     *          The data to initialize
-     */
+
    @Override
    public boolean init( StepMetaInterface smi, StepDataInterface sdi ) {
         
@@ -97,7 +90,7 @@ public class PentahoGoogleSheetsPluginInput extends BaseStep implements StepInte
         String scope=SheetsScopes.SPREADSHEETS_READONLY;
      
 	    try {
-   	   	    JSON_FACTORY = JacksonFactory.getDefaultInstance();
+   	   	    JSON_FACTORY = GsonFactory.getDefaultInstance();
 			HTTP_TRANSPORT=GoogleNetHttpTransport.newTrustedTransport();			
 		} catch (Exception e) {
 			logError("Exception",e.getMessage(),e);
@@ -105,8 +98,10 @@ public class PentahoGoogleSheetsPluginInput extends BaseStep implements StepInte
 		
         
 		if (super.init(smi, sdi)) {
-            try {				
-				Sheets service = new Sheets.Builder(HTTP_TRANSPORT, JSON_FACTORY, PentahoGoogleSheetsPluginCredentials.getCredentialsJson(scope,environmentSubstitute(meta.getJsonCredentialPath()))).setApplicationName(APPLICATION_NAME).build();
+            try {
+                HttpRequestInitializer credential=PentahoGoogleSheetsPluginCredentials.getCredentialsJson(scope,environmentSubstitute(meta.getJsonCredentialPath()),environmentSubstitute(meta.getImpersonation()));
+
+                Sheets service = new Sheets.Builder(HTTP_TRANSPORT, JSON_FACTORY, PentahoGoogleSheetsPluginCredentials.setHttpTimeout(credential,environmentSubstitute(meta.getTimeout()))).setApplicationName(APPLICATION_NAME).build();
 				String range=environmentSubstitute(meta.getWorksheetId());
 				ValueRange response = service.spreadsheets().values().get(environmentSubstitute(meta.getSpreadsheetKey()),range).execute();             
 				if(response==null) {

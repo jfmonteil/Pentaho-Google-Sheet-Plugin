@@ -456,7 +456,10 @@
     </partitioning>
     <worksheetId>Sheet1</worksheetId>
     <spreadsheetKey>1mDcSKwt7MnPv5sEdB5GBV4L2t06JdXGSAnxbdaO1rWE</spreadsheetKey>
-    <jsonCredentialPath>C:\Users\jmonteil\.kettle/client_secret.json</jsonCredentialPath>
+    <jsonCredentialPath>C:\googlekeys\pentaho-sheets-261911-abd85b3badca.json</jsonCredentialPath>
+    <timeout>5</timeout>
+    <impersonation/>
+    <appName>pentaho-sheets</appName>
     <sampleFields>100</sampleFields>
     <fields>
       <field>
@@ -492,7 +495,7 @@
         <group>,</group>
         <position>-1</position>
         <length>-1</length>
-        <precision>0</precision>
+        <precision>-1</precision>
         <trim_type>none</trim_type>
       </field>
       <field>
@@ -516,7 +519,7 @@
         <group>,</group>
         <position>-1</position>
         <length>-1</length>
-        <precision>0</precision>
+        <precision>-1</precision>
         <trim_type>none</trim_type>
       </field>
       <field>
@@ -540,7 +543,7 @@
         <group>,</group>
         <position>-1</position>
         <length>-1</length>
-        <precision>0</precision>
+        <precision>-1</precision>
         <trim_type>none</trim_type>
       </field>
       <field>
@@ -552,7 +555,7 @@
         <group>,</group>
         <position>-1</position>
         <length>-1</length>
-        <precision>0</precision>
+        <precision>-1</precision>
         <trim_type>none</trim_type>
       </field>
       <field>
@@ -629,13 +632,16 @@
       <method>none</method>
       <schema_name/>
     </partitioning>
-    <jsonCredentialPath>C:\Users\jmonteil\.kettle/client_secret.json</jsonCredentialPath>
+    <jsonCredentialPath>C:\googlekeys\pentaho-sheets-261911-abd85b3badca.json</jsonCredentialPath>
     <worksheetId>fonk</worksheetId>
     <spreadsheetKey>1mDcSKwt7MnPv5sEdB5GBV4L2t06JdXGSAnxbdaO1rWE</spreadsheetKey>
     <CREATE>false</CREATE>
     <APPEND>false</APPEND>
     <SHAREEMAIL/>
     <SHAREDOMAIN/>
+    <timeout>5</timeout>
+    <impersonation/>
+    <appName>pentaho-sheets</appName>
     <attributes/>
     <cluster_schema/>
     <remotesteps>

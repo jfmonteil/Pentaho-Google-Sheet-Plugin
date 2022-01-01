@@ -91,9 +91,18 @@ public class PentahoGoogleSheetsPluginInputMeta extends BaseStepMeta implements 
     
 	@Injection( name = "worksheetId", group = "SHEET" )
 	private String worksheetId;
-	
+
+    @Injection( name = "timeout", group = "SHEET" )
+    private String timeout;
+
+    @Injection( name = "impersonation", group = "SHEET" )
+    private String impersonation;
+
 	@Injection( name = "sampleFields", group = "INPUT_Fields" )
 	private Integer sampleFields;
+
+    @Injection( name = "appName", group = "SHEET" )
+    private String appName;
 	
 	@InjectionDeep
 	private PentahoGoogleSheetsPluginInputFields[] inputFields;
@@ -103,6 +112,8 @@ public class PentahoGoogleSheetsPluginInputMeta extends BaseStepMeta implements 
         this.spreadsheetKey = "";
         this.worksheetId = "";  
 		this.jsonCredentialPath = Const.getKettleDirectory()+ "/client_secret.json";
+		this.timeout="5";
+		this.impersonation="";
         this.sampleFields=100;
    
    }
@@ -142,11 +153,31 @@ public class PentahoGoogleSheetsPluginInputMeta extends BaseStepMeta implements 
     public void setSampleFields(int sampleFields) {
         this.sampleFields = sampleFields;
     }
-	
-	public void allocate(int nrfields) {
+
+    public void setTimeout(String timeout) {
+        this.timeout = timeout;
+    }
+    public String getTimeout() {
+        return this.timeout == null ? "" : this.timeout;
+    }
+
+    public void setImpersonation(String impersonation) {
+        this.impersonation = impersonation;
+    }
+    public String getImpersonation() {
+        return this.impersonation == null ? "" : this.impersonation;
+    }
+    public void setAppName(String appName) {
+        this.appName = appName;
+    }
+    public String getAppName() {
+        return this.appName == null ? "" : this.appName;
+    }
+    public void allocate(int nrfields) {
 	    inputFields = new PentahoGoogleSheetsPluginInputFields[nrfields];
 	}
-	
+
+
 
     @Override
     public Object clone() {
@@ -157,6 +188,9 @@ public class PentahoGoogleSheetsPluginInputMeta extends BaseStepMeta implements 
 		retval.setJsonCredentialPath(this.jsonCredentialPath);
 		retval.setSpreadsheetKey(this.spreadsheetKey);
         retval.setWorksheetId(this.worksheetId);
+        retval.setTimeout(this.timeout);
+        retval.setImpersonation(this.impersonation);
+        retval.setAppName(this.appName);
 		retval.setSampleFields(this.sampleFields);
 		for ( int i = 0; i < nrKeys; i++ ) {
 			retval.inputFields[i] = (PentahoGoogleSheetsPluginInputFields) inputFields[i].clone();
@@ -171,6 +205,9 @@ public class PentahoGoogleSheetsPluginInputMeta extends BaseStepMeta implements 
             xml.append(XMLHandler.addTagValue("worksheetId", this.worksheetId));
 			xml.append(XMLHandler.addTagValue("spreadsheetKey", this.spreadsheetKey));
      		xml.append(XMLHandler.addTagValue("jsonCredentialPath", this.jsonCredentialPath));
+            xml.append(XMLHandler.addTagValue("timeout", this.timeout));
+            xml.append(XMLHandler.addTagValue("impersonation", this.impersonation));
+            xml.append(XMLHandler.addTagValue("appName", this.appName));
 			String tmp="100";
 			if(this.sampleFields!=null){
 				xml.append(XMLHandler.addTagValue("sampleFields", this.sampleFields.toString()));
@@ -207,6 +244,9 @@ public class PentahoGoogleSheetsPluginInputMeta extends BaseStepMeta implements 
             this.worksheetId = XMLHandler.getTagValue(stepnode, "worksheetId");
             this.spreadsheetKey = XMLHandler.getTagValue(stepnode, "spreadsheetKey");
             this.jsonCredentialPath = XMLHandler.getTagValue(stepnode, "jsonCredentialPath");
+            this.timeout = XMLHandler.getTagValue(stepnode, "timeout");
+            this.impersonation = XMLHandler.getTagValue(stepnode, "impersonation");
+            this.appName = XMLHandler.getTagValue(stepnode, "appName");
 			String tmp=XMLHandler.getTagValue(stepnode, "sampleField");
             if(tmp!=null && !tmp.isEmpty()){
 			 this.sampleFields = Integer.parseInt(tmp);
@@ -251,7 +291,11 @@ public class PentahoGoogleSheetsPluginInputMeta extends BaseStepMeta implements 
             this.worksheetId = rep.getStepAttributeString(id_step, "worksheetId");
             this.spreadsheetKey = rep.getStepAttributeString(id_step, "spreadsheetKey");
             this.jsonCredentialPath = rep.getStepAttributeString(id_step, "jsonCredentialPath");
+            this.timeout = rep.getStepAttributeString(id_step, "timeout");
+            this.impersonation = rep.getStepAttributeString(id_step, "impersonation");
+            this.appName = rep.getStepAttributeString(id_step, "appName");
 			this.sampleFields =(int) rep.getStepAttributeInteger(id_step, "sampleFields");
+            this.appName = rep.getStepAttributeString(id_step, "appName");
             int nrfields = rep.countNrStepAttributes(id_step, "field_name");
 
             allocate(nrfields);
@@ -287,7 +331,9 @@ public class PentahoGoogleSheetsPluginInputMeta extends BaseStepMeta implements 
             rep.saveStepAttribute(id_transformation, id_step, "worksheetId", this.worksheetId);
             rep.saveStepAttribute(id_transformation, id_step, "jsonCredentialPath", this.jsonCredentialPath);
             rep.saveStepAttribute(id_transformation, id_step, "sampleFields", this.sampleFields.toString());
-
+            rep.saveStepAttribute(id_transformation, id_step, "timeout", this.timeout);
+            rep.saveStepAttribute(id_transformation, id_step, "impersonation", this.impersonation);
+            rep.saveStepAttribute(id_transformation, id_step, "appName", this.appName);
 		    int nrfields = rep.countNrStepAttributes(id_step, "field_name");
            
 		for ( int i = 0; i < inputFields.length; i++ ) {

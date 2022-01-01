@@ -19,75 +19,60 @@
 package org.pentaho.di.trans.steps.pentahogooglesheets;
 
 import org.pentaho.di.core.vfs.KettleVFS;
-import org.pentaho.di.core.exception.KettleFileException;
-import org.pentaho.di.core.exception.KettleException;
-import org.pentaho.di.i18n.BaseMessages;
-import org.pentaho.di.trans.Trans;
-import org.pentaho.di.trans.TransMeta;
-import org.pentaho.di.trans.step.*;
-import org.pentaho.di.core.Const;
-
-
 
 import com.google.api.client.auth.oauth2.Credential;
-import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
-import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
-import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
-import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
+import com.google.auth.http.HttpCredentialsAdapter;
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
-import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
-import com.google.api.client.http.javanet.NetHttpTransport;
-import com.google.api.client.json.JsonFactory;
-import com.google.api.client.json.jackson2.JacksonFactory;
-import com.google.api.client.util.store.FileDataStoreFactory;
-import com.google.api.services.sheets.v4.Sheets;
-import com.google.api.services.sheets.v4.SheetsScopes;
-import com.google.api.services.sheets.v4.model.ValueRange;
-import com.google.api.client.util.Base64;
-
+import com.google.auth.oauth2.GoogleCredentials;
+import com.google.api.client.http.HttpRequestInitializer;
+import com.google.api.services.sqladmin.*;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.*;
+import com.google.api.client.http.*;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.security.GeneralSecurityException;
 import java.util.Collections;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.security.KeyStore;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
+
 
 /**
  * Describe your step plugin.
  * 
  */
-public class PentahoGoogleSheetsPluginCredentials {	
-    
+public class PentahoGoogleSheetsPluginCredentials {
 
 
-	
-	public static Credential getCredentialsJson(String scope,String jsonCredentialPath) throws IOException {
-            
-			Credential credential=null;
-	        //InputStream in = PentahoGoogleSheetsPluginCredentials.class.getResourceAsStream("/plugins/pentaho-googledrive-vfs/credentials/client_secret.json");//pentaho-sheets-261911-18ce0057e3d3.json
-            //logBasic("Getting credential json file from :"+Const.getKettleDirectory());
+	public static HttpCredentialsAdapter getCredentialsJson(String scope,String jsonCredentialPath,String impersonation) throws IOException {
+
+		GoogleCredentials credential=null;
+
             InputStream in=null;
 			try{
 		       in = KettleVFS.getInputStream(jsonCredentialPath);//Const.getKettleDirectory() + "/client_secret.json");
 			}  catch (Exception e) {
-			//throw new KettleFileException("Exception",e.getMessage(),e);
 		    }
 			
 			if (in == null) {
                throw new FileNotFoundException("Resource not found:"+ jsonCredentialPath);			   
             }
-			credential = GoogleCredential.fromStream(in).createScoped(Collections.singleton(scope));
-            return credential;
+			if(impersonation.isEmpty()) {
+				credential = GoogleCredentials.fromStream(in).createScoped(Collections.singleton(scope));
+			}
+			else credential = GoogleCredentials.fromStream(in)
+					.createScoped(Collections.singleton(SQLAdminScopes.SQLSERVICE_ADMIN)).createDelegated(impersonation);
+
+            return new HttpCredentialsAdapter(credential);
+	}
+
+	public static HttpRequestInitializer setHttpTimeout(final HttpRequestInitializer requestInitializer, final String timeout) {
+		return new HttpRequestInitializer() {
+			@Override
+			public void initialize(HttpRequest httpRequest) throws IOException {
+				Integer TO=Integer.parseInt(timeout);
+				requestInitializer.initialize(httpRequest);
+				httpRequest.setConnectTimeout(TO * 60000);  // 10 minutes connect timeout
+				httpRequest.setReadTimeout(TO * 60000);  // 10 minutes read timeout
+			}
+		};
 	}
 	
 
