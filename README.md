@@ -13,13 +13,16 @@ It contains 2 steps :
 ## Installation
 In *delivery rep* you will find a zip that you can unzip in your *pentaho/design-tools/data-integration/plugin* folder.
 Otherwise :  ``` mvn install ```
-You should generate your client secret file (json) for your **Google service account** and paste it somewhere on your machine (or server).
+You should generate your client secret file (json) for your **Google service account** and paste it somewhere on your machine (or server). **It might be ,ecessary to regenerate it, because Google brought some change in 2020**
 Google Tokens will also be create in *.kettle* directory */tokens*
 The service account should be parameterized with both Google Drive and Google Spreadsheet  API’s read and write access
 
 ## Input step
 ### Service Account Tab
-Lets you pick your google service account client secret json file.
+Lets you pick your google service account client secret json file. **It might be ,ecessary to regenerate it, because Google brought some change in 2020**
+Application Name : Your application name for the service account in the Google Developer Console.
+Timeout lets you specify an HTTP tiemout
+Impersonation lets you impersonate your service account **ONLY if you have a GSUITE account** you need to gor through these steps as well : https://cloud.google.com/iam/docs/impersonating-service-accounts
 Test button Lets you test your access to the API.
 On success you should see a success message.
 ![Service Account](https://github.com/jfmonteil/Pentaho-Google-Sheet-Plugin/blob/master/screenshots/PentahoGoogleSheetInput-Credential.png?raw=true)
@@ -42,6 +45,10 @@ Lets you write data into a sheet (existing or not)
 
 ### Service Account Tab
 Lets you pick your google service account client secret json file.
+Application Name : Your application name for the service account in the Google Developer Console.
+Timeout lets you specify an HTTP tiemout
+Impersonation lets you impersonate your service account **ONLY if you have a GSUITE account** you need to gor through these steps as well : https://cloud.google.com/iam/docs/impersonating-service-accounts
+
 Lets  you test your access to the API. On success you should see the following screen
 
 ### Spreadsheet tab
